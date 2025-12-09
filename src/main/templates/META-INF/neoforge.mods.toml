@@ -1,13 +1,13 @@
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
-#issueTrackerURL="https://github.com/petrolpark/Create-Library/issues/10"
+issueTrackerURL="https://github.com/Petrolpark-Mods/Destroy/issues/1"
 
 [[mods]]
 modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
-displayURL="https://www.modrinth.com/mod/Petrols-Parts"
+displayURL="https://www.modrinth.com/mod/Destroy"
 logoFile="logo.png"
 authors="${mod_authors}"
 description='''${mod_description}'''
@@ -29,13 +29,13 @@ file="META-INF/accesstransformer.cfg"
 [[dependencies.${mod_id}]]
 	modId="create"
 	type="required"
-	versionRange="[6.0.6,6.1.0)"
+	versionRange="[6.0.8,6.1.0)"
 	ordering="AFTER"
 	side="BOTH"
 
 [[dependencies.${mod_id}]]
 	modId="petrolpark"
 	type="required"
-	versionRange="[1.4.9,1.5.0)"
+	versionRange="[1.4.25,1.5.0)"
 	ordering="AFTER"
 	side="BOTH"

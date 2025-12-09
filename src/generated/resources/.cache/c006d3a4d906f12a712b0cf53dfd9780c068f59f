@@ -1,0 +1,4 @@
+// 1.21.1	2025-12-03T15:33:45.7000534	Tags for minecraft:block mod id destroy
+60c40433827dec6558e1aee5aab449e3a1431f96 data/destroy/tags/block/acid_rain_destroys.json
+31b1b33c9e075f4647b0add68f597e1a15655568 data/destroy/tags/block/acid_rain_sets_dead_bush.json
+00230c9a6b4d0ae97beb0194001ded4dabf0f9f6 data/destroy/tags/block/acid_rain_sets_dirt.json

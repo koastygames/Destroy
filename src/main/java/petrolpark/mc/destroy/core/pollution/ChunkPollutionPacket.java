@@ -14,6 +14,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import petrolpark.mc.destroy.DestroyAttachmentTypes;
+import petrolpark.mc.destroy.DestroyPackets;
 import petrolpark.mc.destroy.DestroyRegistries;
 
 public record ChunkPollutionPacket(ChunkPos pos, Map<PollutionType<ChunkAccess>, Integer> values) implements ClientboundPacketPayload {
@@ -26,8 +27,7 @@ public record ChunkPollutionPacket(ChunkPos pos, Map<PollutionType<ChunkAccess>,
 
     @Override
     public PacketTypeProvider getTypeProvider() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getTypeProvider'");
+        return DestroyPackets.CHUNK_POLLUTION;
     };
 
     @Override

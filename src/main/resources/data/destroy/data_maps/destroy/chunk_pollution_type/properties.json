@@ -1,0 +1,15 @@
+{
+    "replace": false,
+    "values": {
+        "destroy:smog": {
+            "max": 65565,
+            "sync_threshold": 1000,
+            "decay_chance_per_tick": 0.002,
+            "tree_growth_change": -1,
+            "breeding_failure_chance_multiplier": 1.0,
+            "growth_failure_chance_multiplier": 1.0,
+            "bonemeal_failure_chance_multiplier": 0.9,
+            "villager_price_multiplier": 25.0
+        }
+    }
+}

@@ -1,0 +1,20 @@
+{
+  "values": [
+    "minecraft:glow_lichen",
+    "minecraft:hanging_roots",
+    "minecraft:large_fern",
+    "minecraft:short_grass",
+    "minecraft:short_grass",
+    "minecraft:tall_grass",
+    "minecraft:vine",
+    "minecraft:bamboo_sapling",
+    "minecraft:lily_pad",
+    "minecraft:sugar_cane",
+    "minecraft:moss_block",
+    "minecraft:moss_carpet",
+    "#minecraft:crops",
+    "#minecraft:cave_vines",
+    "#minecraft:flowers",
+    "#minecraft:leaves"
+  ]
+}

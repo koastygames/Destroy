@@ -1,0 +1,64 @@
+package petrolpark.mc.destroy.core.pollution;
+
+import java.util.Collections;
+import java.util.Set;
+
+import com.mojang.datafixers.util.Either;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.petrolpark.core.data.loot.numberprovider.IEstimableNumberProvider;
+import com.petrolpark.core.data.loot.numberprovider.NumberEstimate;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParam;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.level.storage.loot.providers.number.LootNumberProviderType;
+import petrolpark.mc.destroy.DestroyNumberProviderTypes;
+import petrolpark.mc.destroy.DestroyRegistries;
+
+public record PollutionNumberProvider(Either<Holder<PollutionType<Level>>, Holder<PollutionType<ChunkAccess>>> pollutionType, boolean proportion) implements IEstimableNumberProvider {
+
+    public static final MapCodec<PollutionNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+        Codec.either(DestroyRegistries.LEVEL_POLLUTION_TYPES.holderByNameCodec(), DestroyRegistries.CHUNK_POLLUTION_TYPES.holderByNameCodec()).fieldOf("pollution_type").forGetter(PollutionNumberProvider::pollutionType),
+        Codec.BOOL.optionalFieldOf("proportion", true).forGetter(PollutionNumberProvider::proportion)
+    ).apply(instance, PollutionNumberProvider::new));
+
+    @Override
+    public float getFloat(LootContext lootContext) {
+        final int level = pollutionType().map(
+            h -> PollutionHelper.getPollution(lootContext.getLevel(), h.value()),
+            h -> PollutionHelper.getPollution(lootContext.getLevel(), BlockPos.containing(lootContext.getParam(LootContextParams.ORIGIN)), h.value())
+        );
+        return proportion() ? (float)level / (float)getMax() : level;
+    };
+
+    @Override
+    public LootNumberProviderType getType() {
+        return DestroyNumberProviderTypes.POLLUTION.get();
+    };
+
+    @Override
+    public NumberEstimate getEstimate() {
+        return proportion ? NumberEstimate.ranged(0f, 1f) : NumberEstimate.ranged(0f, getMax());
+    };
+
+    @Override
+    public float getMaxFloat(LootContext context) {
+        return getFloat(context);
+    };
+
+    @Override
+    public Set<LootContextParam<?>> getReferencedContextParams() {
+        return pollutionType().map(h -> Collections.emptySet(), h -> Collections.singleton(LootContextParams.ORIGIN));
+    };
+
+    private int getMax() {
+        return pollutionType().map(h -> PollutionHelper.getLevelPollutionTypeProperties(h).max(), h -> PollutionHelper.getChunkPollutionTypeProperties(h).max());
+    };
+    
+};

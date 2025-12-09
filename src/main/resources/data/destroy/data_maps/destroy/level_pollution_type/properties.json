@@ -1,0 +1,27 @@
+{
+    "replace": false,
+    "values": {
+        "destroy:greenhouse": {
+            "max": 65565,
+            "sync_threshold": 1000,
+            "decay_chance_per_tick": 0.002,
+            "tree_growth_change": -1,
+            "growth_failure_chance_multiplier": 0.75,
+            "bonemeal_failure_chance_multiplier": 0.75
+        },
+        "destroy:ozone_depletion": {
+            "max": 65565,
+            "sync_threshold": 1000,
+            "decay_chance_per_tick": 0.002,
+            "lightning_strike_change": -50
+        },
+        "destroy:acid_rain": {
+            "max": 65565,
+            "sync_threshold": 1000,
+            "decay_chance_per_tick": 0.002,
+            "tree_growth_change": -1,
+            "growth_failure_chance_multiplier": 1.0,
+            "bonemeal_failure_chance_multiplier": 0.9
+        }
+    }
+}

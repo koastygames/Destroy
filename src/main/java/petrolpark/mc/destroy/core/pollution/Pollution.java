@@ -27,10 +27,6 @@ public abstract class Pollution<HOLDER extends IAttachmentHolder> {
 
     protected final Object2IntMap<PollutionType<HOLDER>> values = new Object2IntOpenHashMap<>();
     protected final Object2IntMap<PollutionType<HOLDER>> lastSyncedValues = new Object2IntOpenHashMap<>();
-
-    public Pollution(HOLDER holder) {
-        this(holder, Collections.emptyMap());
-    };
     
     public Pollution(HOLDER holder, Map<PollutionType<HOLDER>, Integer> values) {
         this.holder = holder;
@@ -48,6 +44,7 @@ public abstract class Pollution<HOLDER extends IAttachmentHolder> {
     protected Object2IntMap<PollutionType<HOLDER>> setValues(Map<PollutionType<HOLDER>, Integer> values) {
         this.values.putAll(values);
         this.lastSyncedValues.putAll(values);
+        setChanged();
         return this.values;
     };
 
@@ -67,6 +64,7 @@ public abstract class Pollution<HOLDER extends IAttachmentHolder> {
     public int setPollution(PollutionType<HOLDER> pollutionType, int value) {
         final int newValue = Mth.clamp(value, 0, getProperties(pollutionType).max());
         if (setPollutionUnchecked(pollutionType, newValue)) sync();
+        setChanged();
         return newValue;
     };
 
@@ -78,6 +76,7 @@ public abstract class Pollution<HOLDER extends IAttachmentHolder> {
     protected boolean setPollutionUnchecked(PollutionType<HOLDER> pollutionType, int newValue) {
         final int oldValue = values.getInt(pollutionType);
         values.put(pollutionType, newValue);
+        setChanged();
         return Mth.abs(oldValue - newValue) >= getProperties(pollutionType).syncThreshold();
     };
 
@@ -97,11 +96,14 @@ public abstract class Pollution<HOLDER extends IAttachmentHolder> {
      * @return Whether we need to sync
      */
     public boolean tickPollutionTypeUnsynced(RandomSource random, PollutionType<HOLDER> pollutionType) {
+        if (getPollution(pollutionType) <= 0) return false;
         final PollutionType.Properties properties = getProperties(pollutionType);
-        final int flatDecrease = (int)properties.ambientDecayChance();
-        final float decreaseChance = properties.ambientDecayChance() - flatDecrease;
+        final int flatDecrease = (int)properties.decayChancePerTick();
+        final float decreaseChance = properties.decayChancePerTick() - flatDecrease;
         return changePollutionUnchecked(pollutionType, - (flatDecrease + (random.nextFloat() < decreaseChance ? 1 : 0)));
     };
+
+    public void setChanged() {};
 
     public final void sync() {
         syncInternal();

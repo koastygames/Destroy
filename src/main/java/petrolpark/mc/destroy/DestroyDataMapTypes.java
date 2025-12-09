@@ -3,7 +3,10 @@ package petrolpark.mc.destroy;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -22,7 +25,8 @@ public class DestroyDataMapTypes {
             DestroyRegistries.Keys.LEVEL_POLLUTION_TYPE,
             PollutionType.Properties.CODEC
         ).synced(PollutionType.Properties.CODEC, true)
-        .build());
+        .build()
+    );
 
     public static final DataMapType<PollutionType<ChunkAccess>, PollutionType.Properties> CHUNK_POLLUTION_PROPERTIES = register(DataMapType
         .builder(
@@ -30,7 +34,8 @@ public class DestroyDataMapTypes {
             DestroyRegistries.Keys.CHUNK_POLLUTION_TYPE,
             PollutionType.Properties.CODEC
         ).synced(PollutionType.Properties.CODEC, true)
-        .build()); 
+        .build()
+    ); 
 
     public static final DataMapType<PollutionType<ChunkAccess>, PollutionType.SpreadingProperties> CHUNK_POLLUTION_SPREADING_PROPERTIES = register(DataMapType
         .builder(
@@ -38,7 +43,17 @@ public class DestroyDataMapTypes {
             DestroyRegistries.Keys.CHUNK_POLLUTION_TYPE,
             PollutionType.SpreadingProperties.CODEC
         ).synced(PollutionType.SpreadingProperties.CODEC, true)
-        .build()); 
+        .build()
+    ); 
+
+    public static final DataMapType<Block, Block> ACID_RAIN_REPLACEMENTS = register(DataMapType
+        .builder(
+            Destroy.asResource("acid_rain_replacement"),
+            Registries.BLOCK,
+            BuiltInRegistries.BLOCK.byNameCodec()
+        ).synced(BuiltInRegistries.BLOCK.byNameCodec(), true)
+        .build()
+    );
 
     private static final <TYPE extends DataMapType<?, ?>> TYPE register(TYPE dataMapType) {
         DATA_MAP_TYPES.add(dataMapType);

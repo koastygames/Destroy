@@ -1,11 +1,13 @@
 package petrolpark.mc.destroy.core.pollution;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import com.petrolpark.core.world.ChunkTickEvent;
 import com.petrolpark.util.RandomHelper;
 
 import net.createmod.catnip.platform.CatnipServices;
@@ -35,12 +37,17 @@ public class ChunkPollution extends Pollution<ChunkAccess> {
     };
 
     public static final ChunkPollution create(IAttachmentHolder holder) {
-        if (holder instanceof ChunkAccess chunk) return new ChunkPollution(chunk, Collections.emptyMap());
+        if (holder instanceof ChunkAccess chunk) return new ChunkPollution(chunk, DestroyRegistries.CHUNK_POLLUTION_TYPES.stream().collect(Collectors.toMap(Function.identity(), t -> 0)));
         throw new IllegalArgumentException();
     };
 
     @Override
-    public void syncInternal() {
+    public void setChanged() {
+        holder.setUnsaved(true);
+    }
+
+    @Override
+    protected void syncInternal() {
         if (holder.getLevel() instanceof ServerLevel level) CatnipServices.NETWORK.sendToClientsTrackingChunk(level, holder.getPos(), new ChunkPollutionPacket(holder.getPos(), getValues()));
     };
 
@@ -50,7 +57,7 @@ public class ChunkPollution extends Pollution<ChunkAccess> {
 
     @Override
     public PollutionType.Properties getProperties(PollutionType<ChunkAccess> pollutionType) {
-        return Optional.ofNullable(DestroyRegistries.CHUNK_POLLUTION_TYPES.getData(DestroyDataMapTypes.CHUNK_POLLUTION_PROPERTIES, DestroyRegistries.CHUNK_POLLUTION_TYPES.wrapAsHolder(pollutionType).getKey())).orElse(PollutionType.Properties.DEFAULT);
+        return PollutionHelper.getChunkPollutionTypeProperties(pollutionType);
     };
 
     public PollutionType.SpreadingProperties getSpreadingProperties(PollutionType<ChunkAccess> pollutionType) {
@@ -71,7 +78,7 @@ public class ChunkPollution extends Pollution<ChunkAccess> {
                 if (otherChunk == null) continue;
                 final ChunkPollution otherPollution = otherChunk.getData(DestroyAttachmentTypes.CHUNK_POLLUTION);
                 if (random.nextFloat() > spreadingProperties.chance()) continue;
-                final int transfer = (int)((values.getInt(pollutionType) - otherPollution.values.getInt(pollutionType)) * spreadingProperties.rate());
+                final int transfer = (int)((getPollution(pollutionType) - otherPollution.getPollution(pollutionType)) * spreadingProperties.rate());
                 if (transfer == 0) continue;
                 sync |= changePollutionUnchecked(pollutionType, -transfer);
                 otherPollution.changePollution(pollutionType, transfer);
@@ -103,6 +110,11 @@ public class ChunkPollution extends Pollution<ChunkAccess> {
     @SubscribeEvent
     public static final void onWatchChunk(ChunkWatchEvent.Watch event) {
         event.getChunk().getData(DestroyAttachmentTypes.CHUNK_POLLUTION).syncTo(event.getPlayer());
+    };
+
+    @SubscribeEvent
+    public static final void onTickChunk(ChunkTickEvent.Post event) {
+        event.getChunk().getData(DestroyAttachmentTypes.CHUNK_POLLUTION).tick(event.getChunk().getLevel().getRandom());
     };
     
 };

@@ -1,0 +1,9 @@
+{
+    "replace": false,
+    "values": {
+        "destroy:smog": {
+            "chance": 0.002,
+            "rate": 0.005
+        }
+    }
+}

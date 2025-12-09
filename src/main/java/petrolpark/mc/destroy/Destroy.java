@@ -5,15 +5,19 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
-import com.petrolpark.PetrolparkRegistrate;
 
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
+import petrolpark.mc.destroy.config.DestroyConfigs;
+import petrolpark.mc.destroy.core.registrate.DestroyRegistrate;
+import petrolpark.mc.destroy.data.DestroyDatagen;
 
 @Mod(Destroy.MOD_ID)
 public class Destroy {
@@ -22,7 +26,7 @@ public class Destroy {
 
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final PetrolparkRegistrate REGISTRATE = new PetrolparkRegistrate(MOD_ID);
+    public static final DestroyRegistrate REGISTRATE = new DestroyRegistrate(MOD_ID);
 
     public static ResourceLocation asResource(String path) {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
@@ -33,17 +37,19 @@ public class Destroy {
         REGISTRATE.registerEventListeners(modEventBus);
 
         // Config
-        // PetrolparkConfigs.register(ModLoadingContext.get(), modContainer);
+        DestroyConfigs.register(ModLoadingContext.get(), modContainer);
 
         // Registration
         DestroyAttachmentTypes.register(modEventBus);
+        DestroyNumberProviderTypes.register();
         DestroyPackets.register();
         DestroyPollutionTypes.register();
         DestroyRegistries.init();
     
         // Events
         modEventBus.addListener(this::init);
-        // modEventBus.addListener(EventPriority.LOWEST, PetrolparkDatagen::gatherData);
+        modEventBus.addListener(EventPriority.HIGHEST, DestroyDatagen::gatherDataHighPriority);
+        modEventBus.addListener(EventPriority.LOWEST, DestroyDatagen::gatherData);
 
         // Compat
         // if (Mods.JEI.isLoading()) NeoForge.EVENT_BUS.register(ITickableCategory.ClientEvents.class);

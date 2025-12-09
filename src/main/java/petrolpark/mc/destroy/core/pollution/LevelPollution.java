@@ -1,8 +1,8 @@
 package petrolpark.mc.destroy.core.pollution;
 
-import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,7 +15,6 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerChangedDimen
 import net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import petrolpark.mc.destroy.DestroyAttachmentTypes;
-import petrolpark.mc.destroy.DestroyDataMapTypes;
 import petrolpark.mc.destroy.DestroyRegistries;
 
 @EventBusSubscriber
@@ -28,12 +27,12 @@ public class LevelPollution extends Pollution<Level> {
     };
 
     public static LevelPollution create(IAttachmentHolder holder) {
-        if (holder instanceof Level level) return new LevelPollution(level, Collections.emptyMap());
+        if (holder instanceof Level level) return new LevelPollution(level, DestroyRegistries.LEVEL_POLLUTION_TYPES.stream().collect(Collectors.toMap(Function.identity(), t -> 0)));
         throw new IllegalArgumentException();
     };
 
     @Override
-    public void syncInternal() {
+    protected void syncInternal() {
         if (!holder.isClientSide()) CatnipServices.NETWORK.sendToAllClients(new LevelPollutionPacket(getValues()));
     };
 
@@ -47,7 +46,7 @@ public class LevelPollution extends Pollution<Level> {
 
     @Override
     public PollutionType.Properties getProperties(PollutionType<Level> pollutionType) {
-        return Optional.ofNullable(DestroyRegistries.LEVEL_POLLUTION_TYPES.getData(DestroyDataMapTypes.LEVEL_POLLUTION_PROPERTIES, DestroyRegistries.LEVEL_POLLUTION_TYPES.wrapAsHolder(pollutionType).getKey())).orElse(PollutionType.Properties.DEFAULT);
+        return PollutionHelper.getLevelPollutionTypeProperties(pollutionType);
     };
 
     public static class Serializer extends Pollution.Serializer<Level, LevelPollution> {
@@ -80,7 +79,7 @@ public class LevelPollution extends Pollution<Level> {
     };
 
     @SubscribeEvent
-    public static final void onLevelTick(LevelTickEvent event) {
+    public static final void onLevelTick(LevelTickEvent.Post event) {
         event.getLevel().getData(DestroyAttachmentTypes.LEVEL_POLLUTION).tick(event.getLevel().getRandom());
     };
     
