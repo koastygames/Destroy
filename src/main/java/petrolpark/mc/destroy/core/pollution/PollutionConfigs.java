@@ -2,7 +2,7 @@ package petrolpark.mc.destroy.core.pollution;
 
 import net.createmod.catnip.config.ConfigBase;
 
-public class PollutionConfig extends ConfigBase {
+public class PollutionConfigs extends ConfigBase {
 
     public final ConfigBool enablePollution = b(true, "enable", "Releasing chemicals increases pollution, and pollution has effects on the world");
 

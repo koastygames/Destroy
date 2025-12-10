@@ -6,7 +6,6 @@ import java.util.Map;
 import com.petrolpark.util.CodecHelper;
 
 import net.createmod.catnip.net.base.ClientboundPacketPayload;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -32,11 +31,7 @@ public record ChunkPollutionPacket(ChunkPos pos, Map<PollutionType<ChunkAccess>,
 
     @Override
     public void handle(LocalPlayer player) {
-        player.level().getChunk(pos.x, pos.z).getData(DestroyAttachmentTypes.CHUNK_POLLUTION).setValues(values());
-        final Minecraft mc = Minecraft.getInstance();
-
-        // Re-render chunk
-        for (int y = mc.level.getMinSection(); y < mc.level.getMaxSection(); y++) mc.levelRenderer.setSectionDirty(pos.x, y, pos.z);
-        mc.level.clearTintCaches();
+        player.level().getChunk(pos().x, pos().z).getData(DestroyAttachmentTypes.CHUNK_POLLUTION).setValues(values());
+        ClientPollutionEvents.refreshSmog(pos());
     };
 };
