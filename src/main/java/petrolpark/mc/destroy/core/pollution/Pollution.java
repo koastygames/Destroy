@@ -6,8 +6,6 @@ import java.util.Map;
 import org.jetbrains.annotations.Nullable;
 
 import com.mojang.serialization.Codec;
-import com.petrolpark.core.codec.ContextualCodec;
-import com.petrolpark.core.codec.RecordContextualCodecBuilder;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -20,6 +18,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.neoforged.neoforge.attachment.IAttachmentHolder;
 import net.neoforged.neoforge.attachment.IAttachmentSerializer;
+import petrolpark.mc.library.util.codec.ContextualCodec;
+import petrolpark.mc.library.util.codec.RecordContextualCodecBuilder;
 
 public abstract class Pollution<HOLDER extends IAttachmentHolder> {
 

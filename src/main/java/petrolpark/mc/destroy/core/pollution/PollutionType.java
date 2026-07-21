@@ -4,12 +4,12 @@ import java.util.stream.Stream;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import com.petrolpark.util.CodecHelper;
 import com.simibubi.create.foundation.gui.AllIcons;
 
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.attachment.IAttachmentHolder;
 import petrolpark.mc.destroy.DestroyRegistries;
+import petrolpark.mc.library.util.codec.CodecHelper;
 
 public class PollutionType<P extends IAttachmentHolder> {
 

@@ -7,9 +7,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.petrolpark.core.world.ChunkTickEvent;
-import com.petrolpark.util.RandomHelper;
-
 import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -26,6 +23,8 @@ import net.neoforged.neoforge.event.level.ChunkWatchEvent;
 import petrolpark.mc.destroy.DestroyAttachmentTypes;
 import petrolpark.mc.destroy.DestroyDataMapTypes;
 import petrolpark.mc.destroy.DestroyRegistries;
+import petrolpark.mc.library.core.world.ChunkTickEvent;
+import petrolpark.mc.library.util.RandomHelper;
 
 @EventBusSubscriber
 public class ChunkPollution extends Pollution<ChunkAccess> {
@@ -108,7 +107,7 @@ public class ChunkPollution extends Pollution<ChunkAccess> {
     };
 
     @SubscribeEvent
-    public static final void onWatchChunk(ChunkWatchEvent.Watch event) {
+    public static final void onWatchChunk(ChunkWatchEvent.Sent event) {
         event.getChunk().getData(DestroyAttachmentTypes.CHUNK_POLLUTION).syncTo(event.getPlayer());
     };
 

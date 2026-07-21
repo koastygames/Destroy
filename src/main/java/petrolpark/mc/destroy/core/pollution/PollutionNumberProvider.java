@@ -7,8 +7,6 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import com.petrolpark.core.data.loot.numberprovider.IEstimableNumberProvider;
-import com.petrolpark.core.data.loot.numberprovider.NumberEstimate;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -20,6 +18,8 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.providers.number.LootNumberProviderType;
 import petrolpark.mc.destroy.DestroyNumberProviderTypes;
 import petrolpark.mc.destroy.DestroyRegistries;
+import petrolpark.mc.library.core.data.numberProvider.IEstimableNumberProvider;
+import petrolpark.mc.library.core.data.numberProvider.NumberEstimate;
 
 public record PollutionNumberProvider(Either<Holder<PollutionType<Level>>, Holder<PollutionType<ChunkAccess>>> pollutionType, boolean proportion) implements IEstimableNumberProvider {
 

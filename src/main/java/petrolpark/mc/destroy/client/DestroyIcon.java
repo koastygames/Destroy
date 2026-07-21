@@ -1,9 +1,8 @@
 package petrolpark.mc.destroy.client;
 
-import com.petrolpark.compat.create.PetrolparkIcon;
-
 import net.minecraft.resources.ResourceLocation;
 import petrolpark.mc.destroy.Destroy;
+import petrolpark.mc.library.compat.create.registry.PetrolparkIcon;
 
 public class DestroyIcon extends PetrolparkIcon {
 

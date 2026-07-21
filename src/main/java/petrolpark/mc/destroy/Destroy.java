@@ -16,8 +16,10 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import petrolpark.mc.destroy.config.DestroyConfigs;
-import petrolpark.mc.destroy.core.registrate.DestroyRegistrate;
+import petrolpark.mc.destroy.core.registrate.AbstractDestroyRegistrate;
 import petrolpark.mc.destroy.data.DestroyDatagen;
+import petrolpark.mc.library.shared.GetPetrolparkSharedFeatures;
+import petrolpark.mc.library.shared.SharedFeatureFlag;
 
 @Mod(Destroy.MOD_ID)
 public class Destroy {
@@ -26,7 +28,7 @@ public class Destroy {
 
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final DestroyRegistrate REGISTRATE = new DestroyRegistrate(MOD_ID);
+    public static final AbstractDestroyRegistrate REGISTRATE = new AbstractDestroyRegistrate(MOD_ID);
 
     public static ResourceLocation asResource(String path) {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
@@ -55,6 +57,17 @@ public class Destroy {
         // if (Mods.JEI.isLoading()) NeoForge.EVENT_BUS.register(ITickableCategory.ClientEvents.class);
         // Mods.CREATE.executeIfInstalled(() -> () -> Create.ctor(modEventBus, NeoForge.EVENT_BUS));
         // Mods.CURIOS.executeIfInstalled(() -> () -> Curios.ctor(modEventBus, NeoForge.EVENT_BUS));
+    };
+
+    @GetPetrolparkSharedFeatures
+    public SharedFeatureFlag[] getEnabledSharedFeatureFlags() {
+        return new SharedFeatureFlag[]{
+            SharedFeatureFlag.BASIN_LID,
+            SharedFeatureFlag.BLOOD,
+            SharedFeatureFlag.EXTRUSION,
+            SharedFeatureFlag.MILK_PRODUCTS,
+            SharedFeatureFlag.SUNFLOWER_OIL
+        };
     };
 
     private void init(final FMLCommonSetupEvent event) {
