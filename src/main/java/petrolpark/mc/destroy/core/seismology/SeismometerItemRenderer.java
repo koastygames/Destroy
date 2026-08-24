@@ -1,4 +1,4 @@
-package petrolpark.mc.library.destroy.content.oil.seismology;
+package petrolpark.mc.destroy.core.seismology;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
@@ -18,7 +18,7 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import petrolpark.mc.destroy.Destroy;
-import petrolpark.mc.library.destroy.DestroyItems;
+import petrolpark.mc.destroy.DestroyItems;
 
 public class SeismometerItemRenderer extends CustomRenderedItemModelRenderer {
 

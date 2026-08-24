@@ -1,40 +1,44 @@
 package petrolpark.mc.library.destroy.content.oil.seismology;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
+
+import javax.annotation.ParametersAreNonnullByDefault;
 
 import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 
+import it.unimi.dsi.fastutil.objects.Object2FloatMap;
+import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
+import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.util.LazyOptional;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
-import petrolpark.mc.destroy.Destroy;
-import petrolpark.mc.destroy.core.seismology.SeismographItem.Seismograph;
-import petrolpark.mc.library.core.world.entity.player.extendedInventory.ExtendedInventory;
-import petrolpark.mc.library.destroy.DestroyAdvancementTrigger;
-import petrolpark.mc.library.destroy.DestroyItems;
-import petrolpark.mc.library.destroy.DestroyMessages;
-import petrolpark.mc.library.destroy.client.DestroyLang;
-import petrolpark.mc.library.destroy.content.oil.ChunkCrudeOil;
+import petrolpark.mc.destroy.DestroyCriteriaTriggers;
+import petrolpark.mc.destroy.DestroyDataComponentTypes;
+import petrolpark.mc.destroy.DestroyItems;
+import petrolpark.mc.destroy.config.DestroyConfigs;
+import petrolpark.mc.library.compat.pquality.OptionalQuality;
 
-@EventBusSubscriber(modid = Destroy.MOD_ID)
+@EventBusSubscriber
+@ParametersAreNonnullByDefault
 public class SeismometerItem extends Item {
 
     public SeismometerItem(Properties properties) {
@@ -47,72 +51,91 @@ public class SeismometerItem extends Item {
 		consumer.accept(SimpleCustomRenderer.create(this, new SeismometerItemRenderer()));
 	};
 
+    public static void trigger(ServerPlayer player) {
+
+        if (!(player.level() instanceof ServerLevel level)) return;
+
+        final int chunkX = SectionPos.blockToSectionCoord(player.getOnPos().getX());
+        final int chunkZ = SectionPos.blockToSectionCoord(player.getOnPos().getZ());
+
+        final Object2FloatMap<ISeismologyProvider> seismometerErrorRates = new Object2FloatOpenHashMap<>();
+        final Map<ISeismologyProvider, List<ItemStack>> seismographs = new HashMap<>();
+
+        for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
+            final ItemStack stack = player.getInventory().getItem(slot);
+
+            if (DestroyItems.SEISMOMETER.isIn(stack)) {
+                final ISeismologyProvider seismologyProvider = stack.get(DestroyDataComponentTypes.SEISMOLOGY_PROVIDER);
+                if (seismologyProvider != null && seismologyProvider != ISeismologyProvider.none())
+                    seismometerErrorRates.merge(
+                        seismologyProvider,
+                        OptionalQuality.reduce(stack, DestroyConfigs.server().oil.seismometerErrorRate.getF()),
+                        Float::min // Take the minimum error of any Seismometers
+                    );
+            };
+
+            if (DestroyItems.SEISMOMETER.isIn(stack)) {
+                
+                final MapItemSavedData mapData = MapItem.getSavedData(stack, level);
+                if (mapData == null ||
+                    SeismographItem.mapChunkCenter(chunkX) * 16 != mapData.centerX || // Must be in the range of the Seismograph
+                    SeismographItem.mapChunkCenter(chunkZ) * 16 != mapData.centerZ
+                ) continue;
+
+                final ISeismologyProvider seismologyProvider = stack.getOrDefault(DestroyDataComponentTypes.SEISMOLOGY_PROVIDER, ISeismologyProvider.none());
+                seismographs.computeIfAbsent(seismologyProvider, $ -> new ArrayList<>()).add(stack);
+            };
+        };
+
+        if (seismometerErrorRates.isEmpty()) return;
+
+        // Add Seismology Providers to Seismographs without one
+        seismographs.getOrDefault(ISeismologyProvider.none(), Collections.emptyList()).forEach(stack -> stack.set(DestroyDataComponentTypes.SEISMOLOGY_PROVIDER, seismometerErrorRates.iterator().next()));
+
+
+        int modX = chunkX - SeismographItem.mapChunkLowerCorner(chunkX);
+        int modZ = chunkZ - SeismographItem.mapChunkLowerCorner(chunkZ);
+        boolean newInfo = false; // Whether new information was added to any Seismographs
+
+        for (Object2FloatMap.Entry<ISeismologyProvider> entry : seismometerErrorRates.object2FloatEntrySet()) {
+            final ISeismologyProvider provider = entry.getKey();
+            final float errorRate = entry.getFloatValue();
+
+            final byte xSignals = ISeismologyProvider.getSignals(level, provider, errorRate, chunkX, chunkZ, true);
+            final byte zSignals = ISeismologyProvider.getSignals(level, provider, errorRate, chunkX, chunkZ, false);
+
+            for (ItemStack stack : seismographs.get(provider)) {
+                final Seismograph.Mutable seismograph = stack.getOrDefault(DestroyDataComponentTypes.SEISMOGRAPH, Seismograph.empty()).mutable();
+                
+                newInfo |= seismograph.setMark(modX, modZ, (zSignals & 1 << modZ) != 0 ? Seismograph.Mark.ACTIVE : Seismograph.Mark.INACTIVE);
+                newInfo |= seismograph.discoverRow(modZ, player);
+                newInfo |= seismograph.discoverColumn(modX, player);
+                seismograph.getColumns()[modX] = zSignals;
+                seismograph.getRows()[modZ] = xSignals;
+
+                stack.set(DestroyDataComponentTypes.SEISMOGRAPH, seismograph.immutable());
+            };
+        };
+
+        if (seismographs.isEmpty()) player.displayClientMessage(DestroyLang.translate("tooltip.seismometer.no_seismograph").style(ChatFormatting.RED).component(), true);
+            else if (newInfo) player.displayClientMessage(DestroyLang.translate("tooltip.seismometer.added_info").component(), true);
+            else player.displayClientMessage(DestroyLang.translate("tooltip.seismometer.no_new_info").style(ChatFormatting.RED).component(), true);
+        
+        
+
+        // Update the animation of the Seismometer(s)
+        CatnipServices.NETWORK.sendToClient(player, SeismometerSpikePacket.INSTANCE);
+        // Award Advancement if some Seismograph info was filled in
+        if (newInfo) DestroyCriteriaTriggers.USE_SEISMOMETER.get().trigger(player);
+    };
+
     /**
      * Trigger Handheld Seismometers when there are nearby Explosions.
      */
     @SubscribeEvent
     public static final void onExplosion(ExplosionEvent.Start event) {
         Level level = event.getLevel();
-        level.getEntitiesOfClass(Player.class, AABB.ofSize(event.getExplosion().getPosition(), 16, 16, 16), player -> true).forEach(player -> {
-            if (player.getInventory().hasAnyMatching(DestroyItems.SEISMOMETER::isIn)) {
-                int chunkX = SectionPos.blockToSectionCoord(player.getOnPos().getX());
-                int chunkZ = SectionPos.blockToSectionCoord(player.getOnPos().getZ());
-                
-                List<ItemStack> seismographs = ExtendedInventory.get(player).stream()
-                    .filter(DestroyItems.SEISMOGRAPH::isIn)
-                    .filter(stack -> {
-                        MapItemSavedData mapData = MapItem.getSavedData(stack, level);
-                        if (mapData == null) return false;
-                        return (SeismographItem.mapChunkCenter(chunkX) * 16 == mapData.centerX && SeismographItem.mapChunkCenter(chunkZ) * 16 == mapData.centerZ);
-                    })
-                    .toList();
-
-                // Generate the Oil in this chunk
-                LevelChunk chunk = level.getChunk(chunkX, chunkZ);
-                LazyOptional<ChunkCrudeOil> ccoOptional = chunk.getCapability(ChunkCrudeOil.Provider.CHUNK_CRUDE_OIL);
-                int newOilGenerated = 0;
-                if (ccoOptional.isPresent()) {
-                    ChunkCrudeOil cco = ccoOptional.resolve().get();
-                    if (!cco.isGenerated()) {
-                        cco.generate(chunk, player);
-                        newOilGenerated = cco.getAmount();
-                    };
-                };         
-
-                boolean newInfo = false; // Whether new information was added to any Seismographs
-
-                // Add information to Seismographs and display information to the player
-                if (level instanceof ServerLevel serverLevel) {
-                    byte xSignals = ChunkCrudeOil.getSignals(serverLevel, chunkX, chunkZ, true);
-                    byte zSignals = ChunkCrudeOil.getSignals(serverLevel, chunkX, chunkZ, false);
-                    int modX = chunkX - SeismographItem.mapChunkLowerCorner(chunkX);
-                    int modZ = chunkZ - SeismographItem.mapChunkLowerCorner(chunkZ);
-                    for (ItemStack stack : seismographs) {
-                        Seismograph seismograph = SeismographItem.readSeismograph(stack);
-                        // Mark this chunk as definitively seismically active or not on the Seismograph
-                        newInfo |= seismograph.mark(modX, modZ, (zSignals & 1 << modZ) != 0 ? Seismograph.Mark.TICK : Seismograph.Mark.CROSS);
-                        // Add nonogram info
-                        newInfo |= seismograph.discoverColumn(modX, level, player);
-                        newInfo |= seismograph.discoverRow(modZ, level, player);
-                        seismograph.getColumns()[modX] = zSignals;
-                        seismograph.getRows()[modZ] = xSignals;
-                        SeismographItem.writeSeismograph(stack, seismograph);
-                    };
-                    // Show message (and award XP if necessary)
-                    if (newOilGenerated > 0) {
-                        player.displayClientMessage(DestroyLang.translate("tooltip.seismometer.struck_oil", newOilGenerated / 1000).component(), true);
-                        ExperienceOrb.award(serverLevel, player.position(), newOilGenerated / 10000);  
-                    } else if (seismographs.isEmpty()) player.displayClientMessage(DestroyLang.translate("tooltip.seismometer.no_seismograph").style(ChatFormatting.RED).component(), true);
-                    else if (newInfo) player.displayClientMessage(DestroyLang.translate("tooltip.seismometer.added_info").component(), true);
-                    else player.displayClientMessage(DestroyLang.translate("tooltip.seismometer.no_new_info").style(ChatFormatting.RED).component(), true);
-                };
-                
-                // Update the animation of the Seismometer(s)
-                if (player instanceof ServerPlayer serverPlayer) DestroyMessages.sendToClient(new SeismometerSpikeS2CPacket(), serverPlayer);
-                // Award Advancement if some Seismograph info was filled in
-                if (newInfo) DestroyAdvancementTrigger.USE_SEISMOMETER.award(level, player);
-            };
-        });
+        level.getEntitiesOfClass(Player.class, AABB.ofSize(event.getExplosion().getPosition(), 16, 16, 16), $ -> true).forEach(SeismometerItem::trigger);
     };
     
 };

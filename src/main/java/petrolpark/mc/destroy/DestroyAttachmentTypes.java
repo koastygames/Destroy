@@ -5,6 +5,7 @@ import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
+import petrolpark.mc.destroy.core.oil.ChunkCrudeOil;
 import petrolpark.mc.destroy.core.pollution.ChunkPollution;
 import petrolpark.mc.destroy.core.pollution.LevelPollution;
 
@@ -19,6 +20,11 @@ public class DestroyAttachmentTypes {
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<ChunkPollution>> CHUNK_POLLUTION = ATTACHMENT_TYPES.register("chunk_pollution", AttachmentType.builder(ChunkPollution::create)
         .serialize(ChunkPollution.SERIALIZER)
+        ::build
+    );
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<ChunkCrudeOil>> CHUNK_CRUDE_OIL = ATTACHMENT_TYPES.register("crude_oil", AttachmentType.builder(ChunkCrudeOil::create)
+        .serialize(ChunkCrudeOil.SERIALIZER)
         ::build
     );
 

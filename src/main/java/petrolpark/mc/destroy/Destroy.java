@@ -8,7 +8,6 @@ import com.mojang.logging.LogUtils;
 
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModLoadingContext;
@@ -16,8 +15,6 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import petrolpark.mc.destroy.config.DestroyConfigs;
-import petrolpark.mc.destroy.core.registrate.AbstractDestroyRegistrate;
-import petrolpark.mc.destroy.data.DestroyDatagen;
 import petrolpark.mc.library.shared.GetPetrolparkSharedFeatures;
 import petrolpark.mc.library.shared.SharedFeatureFlag;
 
@@ -28,7 +25,7 @@ public class Destroy {
 
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final AbstractDestroyRegistrate REGISTRATE = new AbstractDestroyRegistrate(MOD_ID);
+    public static final DestroyRegistrate REGISTRATE = new DestroyRegistrate();
 
     public static ResourceLocation asResource(String path) {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
@@ -43,6 +40,7 @@ public class Destroy {
 
         // Registration
         DestroyAttachmentTypes.register(modEventBus);
+        DestroyCriteriaTriggers.register();
         DestroyNumberProviderTypes.register();
         DestroyPackets.register();
         DestroyPollutionTypes.register();
@@ -50,8 +48,6 @@ public class Destroy {
     
         // Events
         modEventBus.addListener(this::init);
-        modEventBus.addListener(EventPriority.HIGHEST, DestroyDatagen::gatherDataHighPriority);
-        modEventBus.addListener(EventPriority.LOWEST, DestroyDatagen::gatherData);
 
         // Compat
         // if (Mods.JEI.isLoading()) NeoForge.EVENT_BUS.register(ITickableCategory.ClientEvents.class);

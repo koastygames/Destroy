@@ -1,4 +1,4 @@
-package petrolpark.mc.library.destroy.content.oil.seismology;
+package petrolpark.mc.destroy.core.seismology;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -22,8 +22,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import petrolpark.mc.destroy.client.DestroyGuiTexture;
-import petrolpark.mc.destroy.core.seismology.SeismographItem.Seismograph;
-import petrolpark.mc.destroy.core.seismology.SeismographItem.Seismograph.Mark;
+import petrolpark.mc.destroy.core.seismology.Seismograph.Mark;
 
 public class SeismographItemRenderer extends CustomRenderedItemModelRenderer {
 

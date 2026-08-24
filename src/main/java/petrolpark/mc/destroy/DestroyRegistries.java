@@ -14,6 +14,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.registries.NewRegistryEvent;
 import net.neoforged.neoforge.registries.RegistryBuilder;
 import petrolpark.mc.destroy.core.pollution.PollutionType;
+import petrolpark.mc.destroy.core.seismology.ISeismologyProvider;
 
 @EventBusSubscriber
 public class DestroyRegistries {
@@ -22,6 +23,8 @@ public class DestroyRegistries {
 
     public static final Registry<PollutionType<ChunkAccess>> CHUNK_POLLUTION_TYPES = simple(Keys.CHUNK_POLLUTION_TYPE);
     public static final Registry<PollutionType<Level>> LEVEL_POLLUTION_TYPES = simple(Keys.LEVEL_POLLUTION_TYPE);
+
+    public static final Registry<ISeismologyProvider> SEISMOLOGY_PROVIDERS = simple(Keys.SEISMOLOGY_PROVIDER);
 
     @ApiStatus.Internal
     public static <T> Registry<T> simple(ResourceKey<Registry<T>> key) {
@@ -45,6 +48,8 @@ public class DestroyRegistries {
 
         public static final ResourceKey<Registry<PollutionType<ChunkAccess>>> CHUNK_POLLUTION_TYPE = key("chunk_pollution_type");
         public static final ResourceKey<Registry<PollutionType<Level>>> LEVEL_POLLUTION_TYPE = key("level_pollution_type");
+
+        public static final ResourceKey<Registry<ISeismologyProvider>> SEISMOLOGY_PROVIDER = key("seismology_provider");
 
         private static <T> ResourceKey<Registry<T>> key(String name) {
 		    return ResourceKey.createRegistryKey(Destroy.asResource(name));

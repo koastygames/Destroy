@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -18,6 +20,7 @@ import petrolpark.mc.destroy.DestroyAttachmentTypes;
 import petrolpark.mc.destroy.DestroyRegistries;
 
 @EventBusSubscriber
+@ParametersAreNonnullByDefault
 public class LevelPollution extends Pollution<Level> {
 
     public static final Serializer SERIALIZER = new Serializer();

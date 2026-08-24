@@ -7,12 +7,18 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import petrolpark.mc.destroy.core.pollution.ChunkPollutionPacket;
 import petrolpark.mc.destroy.core.pollution.LevelPollutionPacket;
+import petrolpark.mc.destroy.core.seismology.MarkSeismographPacket;
+import petrolpark.mc.destroy.core.seismology.SeismometerSpikePacket;
 
 public enum DestroyPackets implements BasePacketPayload.PacketTypeProvider {
 
     // Server -> client
     CHUNK_POLLUTION(ChunkPollutionPacket.class, ChunkPollutionPacket.STREAM_CODEC),
-    LEVEL_POLLUTION(LevelPollutionPacket.class, LevelPollutionPacket.STREAM_CODEC)
+    LEVEL_POLLUTION(LevelPollutionPacket.class, LevelPollutionPacket.STREAM_CODEC),
+    SEISMOMETER_SPIKE(SeismometerSpikePacket.class, StreamCodec.unit(SeismometerSpikePacket.INSTANCE)),
+
+    // Client -> server
+    MARK_SEISMOGRAPH(MarkSeismographPacket.class, MarkSeismographPacket.STREAM_CODEC),
     ;
 
     private final CatnipPacketRegistry.PacketType<?> type;

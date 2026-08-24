@@ -1,6 +1,6 @@
-package petrolpark.mc.destroy.core.registrate;
+package petrolpark.mc.destroy;
 
-import petrolpark.mc.destroy.Destroy;
+import petrolpark.mc.destroy.core.registrate.AbstractDestroyRegistrate;
 
 public class DestroyRegistrate extends AbstractDestroyRegistrate<DestroyRegistrate> {
 

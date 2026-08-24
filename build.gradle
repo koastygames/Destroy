@@ -116,6 +116,7 @@ repositories {
     }
     flatDir {
         dirs "../petrolpark_local_maven/petrolpark/petrolpark-${minecraft_version}/${petrolpark_library_version}"
+        dirs "../petrolpark_local_maven/petrolpark/mc/pquality/pquality/${pquality_version}"
     }
 }
 
@@ -133,6 +134,10 @@ dependencies {
     compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
     runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
 
+    // OPTIONAL
+
+    // pquality
+    implementation("petrolpark.mc.pquality:pquality:${pquality_version}")
     // JEI
     implementation("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
 

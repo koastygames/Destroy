@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import net.createmod.catnip.platform.CatnipServices;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -27,9 +29,10 @@ import petrolpark.mc.library.core.world.ChunkTickEvent;
 import petrolpark.mc.library.util.RandomHelper;
 
 @EventBusSubscriber
+@ParametersAreNonnullByDefault
 public class ChunkPollution extends Pollution<ChunkAccess> {
 
-    public static final Serializer SERIALIZER = new Serializer();
+    public static final Serializer SERIALIZER = new ChunkPollution.Serializer();
 
     public ChunkPollution(ChunkAccess holder, Map<PollutionType<ChunkAccess>, Integer> values) {
         super(holder, values);
@@ -65,8 +68,9 @@ public class ChunkPollution extends Pollution<ChunkAccess> {
 
     @Override
     public boolean tickPollutionTypeUnsynced(RandomSource random, PollutionType<ChunkAccess> pollutionType) {
-        boolean sync = super.tickPollutionTypeUnsynced(random, pollutionType);
         final Level level = holder.getLevel();
+        if (level == null) return false;
+        boolean sync = super.tickPollutionTypeUnsynced(random, pollutionType);
         final PollutionType.SpreadingProperties spreadingProperties = getSpreadingProperties(pollutionType);
         
         if (holder.getPos().x % 2 == holder.getPos().z % 2) { // Only spread to/from chunks in a checkerboard fashion, as it is really the Chunk boundaries we want to tick

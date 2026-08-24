@@ -3,6 +3,8 @@ package petrolpark.mc.destroy.core.pollution;
 import java.util.Collections;
 import java.util.Map;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.mojang.serialization.Codec;
@@ -21,6 +23,7 @@ import net.neoforged.neoforge.attachment.IAttachmentSerializer;
 import petrolpark.mc.library.util.codec.ContextualCodec;
 import petrolpark.mc.library.util.codec.RecordContextualCodecBuilder;
 
+@ParametersAreNonnullByDefault
 public abstract class Pollution<HOLDER extends IAttachmentHolder> {
 
     protected final HOLDER holder;
