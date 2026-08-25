@@ -1,4 +1,4 @@
-package petrolpark.mc.library.destroy.content.oil.seismology;
+package petrolpark.mc.destroy.core.seismology;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,19 +9,27 @@ import java.util.function.Consumer;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour.ValueSettings;
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard;
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsFormatter;
 import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 
 import it.unimi.dsi.fastutil.objects.Object2FloatMap;
 import it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap;
 import net.createmod.catnip.platform.CatnipServices;
-import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.SectionPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.phys.AABB;
@@ -34,14 +42,25 @@ import net.neoforged.neoforge.event.level.ExplosionEvent;
 import petrolpark.mc.destroy.DestroyCriteriaTriggers;
 import petrolpark.mc.destroy.DestroyDataComponentTypes;
 import petrolpark.mc.destroy.DestroyItems;
+import petrolpark.mc.destroy.DestroyRegistries;
+import petrolpark.mc.destroy.DestroyTags;
 import petrolpark.mc.destroy.config.DestroyConfigs;
+import petrolpark.mc.destroy.util.DestroyLang;
+import petrolpark.mc.library.compat.create.core.world.item.valueSettings.IValueSettingsItem;
 import petrolpark.mc.library.compat.pquality.OptionalQuality;
 
 @EventBusSubscriber
 @ParametersAreNonnullByDefault
-public class SeismometerItem extends Item {
+public class SeismometerItem extends Item implements IValueSettingsItem {
 
-    public SeismometerItem(Properties properties) {
+    public static List<Holder<ISeismologyProvider>> getProviders() {
+        final List<Holder<ISeismologyProvider>> providers = DestroyRegistries.SEISMOLOGY_PROVIDERS.getTag(DestroyTags.SeismologyProviders.FOR_SEISMOMETER.tag).stream()
+            .flatMap(HolderSet.Named::stream)
+            .toList();
+        return providers.isEmpty() ? Collections.singletonList(ISeismologyProvider.noneHolder()) : providers;
+    };
+
+    public SeismometerItem(Item.Properties properties) {
         super(properties);
     };
 
@@ -51,6 +70,41 @@ public class SeismometerItem extends Item {
 		consumer.accept(SimpleCustomRenderer.create(this, new SeismometerItemRenderer()));
 	};
 
+    @Override
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
+        return useValueSettingsItem(level, player, usedHand);
+    };
+
+    @Override
+    public ValueSettingsBoard createValueSettingsBoard(Player player, InteractionHand hand, ItemStack stack) {
+        final List<Holder<ISeismologyProvider>> providers = getProviders();
+        return new ValueSettingsBoard(
+            DestroyLang.tooltip("seismology_provider", ""),
+            0,
+            providers.size(),
+            providers.stream().map(Holder::value).map(ISeismologyProvider::getName).toList(),
+            new ValueSettingsFormatter(settings -> settings.row() >= 0 && settings.row() < providers.size() ? providers.get(settings.row()).value().getName().copy() : Component.empty())
+        );
+    };
+
+    @Override
+    public ValueSettings getValueSettings(ItemStack stack) {
+        return new ValueSettings(getProviders().indexOf(stack.getOrDefault(DestroyDataComponentTypes.SEISMOLOGY_PROVIDER, ISeismologyProvider.noneHolder())), 0);
+    };
+
+    @Override
+    public void setValueSettings(ItemStack stack, ValueSettings valueSettings, boolean ctrlDown) {
+        final int index = valueSettings.row();
+        final List<Holder<ISeismologyProvider>> providers = getProviders();
+        if (index >= 0 && index < providers.size()) stack.set(DestroyDataComponentTypes.SEISMOLOGY_PROVIDER, providers.get(index));
+    };
+
+    @Override
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        stack.getOrDefault(DestroyDataComponentTypes.SEISMOLOGY_PROVIDER, ISeismologyProvider.noneHolder()).value().addToTooltip(context, tooltipComponents::add, tooltipFlag);
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+    };
+
     public static void trigger(ServerPlayer player) {
 
         if (!(player.level() instanceof ServerLevel level)) return;
@@ -58,15 +112,15 @@ public class SeismometerItem extends Item {
         final int chunkX = SectionPos.blockToSectionCoord(player.getOnPos().getX());
         final int chunkZ = SectionPos.blockToSectionCoord(player.getOnPos().getZ());
 
-        final Object2FloatMap<ISeismologyProvider> seismometerErrorRates = new Object2FloatOpenHashMap<>();
+        final Object2FloatMap<Holder<ISeismologyProvider>> seismometerErrorRates = new Object2FloatOpenHashMap<>();
         final Map<ISeismologyProvider, List<ItemStack>> seismographs = new HashMap<>();
 
         for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
             final ItemStack stack = player.getInventory().getItem(slot);
 
             if (DestroyItems.SEISMOMETER.isIn(stack)) {
-                final ISeismologyProvider seismologyProvider = stack.get(DestroyDataComponentTypes.SEISMOLOGY_PROVIDER);
-                if (seismologyProvider != null && seismologyProvider != ISeismologyProvider.none())
+                final Holder<ISeismologyProvider> seismologyProvider = stack.getOrDefault(DestroyDataComponentTypes.SEISMOLOGY_PROVIDER, ISeismologyProvider.noneHolder());
+                if (seismologyProvider.value() != ISeismologyProvider.none())
                     seismometerErrorRates.merge(
                         seismologyProvider,
                         OptionalQuality.reduce(stack, DestroyConfigs.server().oil.seismometerErrorRate.getF()),
@@ -74,7 +128,7 @@ public class SeismometerItem extends Item {
                     );
             };
 
-            if (DestroyItems.SEISMOMETER.isIn(stack)) {
+            if (DestroyItems.SEISMOGRAPH.isIn(stack)) {
                 
                 final MapItemSavedData mapData = MapItem.getSavedData(stack, level);
                 if (mapData == null ||
@@ -82,7 +136,7 @@ public class SeismometerItem extends Item {
                     SeismographItem.mapChunkCenter(chunkZ) * 16 != mapData.centerZ
                 ) continue;
 
-                final ISeismologyProvider seismologyProvider = stack.getOrDefault(DestroyDataComponentTypes.SEISMOLOGY_PROVIDER, ISeismologyProvider.none());
+                final ISeismologyProvider seismologyProvider = stack.getOrDefault(DestroyDataComponentTypes.SEISMOLOGY_PROVIDER, ISeismologyProvider.noneHolder()).value();
                 seismographs.computeIfAbsent(seismologyProvider, $ -> new ArrayList<>()).add(stack);
             };
         };
@@ -90,22 +144,24 @@ public class SeismometerItem extends Item {
         if (seismometerErrorRates.isEmpty()) return;
 
         // Add Seismology Providers to Seismographs without one
-        seismographs.getOrDefault(ISeismologyProvider.none(), Collections.emptyList()).forEach(stack -> stack.set(DestroyDataComponentTypes.SEISMOLOGY_PROVIDER, seismometerErrorRates.iterator().next()));
-
+        seismographs.getOrDefault(ISeismologyProvider.none(), Collections.emptyList()).forEach(stack -> stack.set(DestroyDataComponentTypes.SEISMOLOGY_PROVIDER, seismometerErrorRates.keySet().iterator().next()));
 
         int modX = chunkX - SeismographItem.mapChunkLowerCorner(chunkX);
         int modZ = chunkZ - SeismographItem.mapChunkLowerCorner(chunkZ);
         boolean newInfo = false; // Whether new information was added to any Seismographs
 
-        for (Object2FloatMap.Entry<ISeismologyProvider> entry : seismometerErrorRates.object2FloatEntrySet()) {
-            final ISeismologyProvider provider = entry.getKey();
+        for (Object2FloatMap.Entry<Holder<ISeismologyProvider>> entry : seismometerErrorRates.object2FloatEntrySet()) {
+            final ISeismologyProvider provider = entry.getKey().value();
             final float errorRate = entry.getFloatValue();
+
+            final List<ItemStack> stacks = seismographs.get(provider);
+            if (stacks == null) continue;
 
             final byte xSignals = ISeismologyProvider.getSignals(level, provider, errorRate, chunkX, chunkZ, true);
             final byte zSignals = ISeismologyProvider.getSignals(level, provider, errorRate, chunkX, chunkZ, false);
 
-            for (ItemStack stack : seismographs.get(provider)) {
-                final Seismograph.Mutable seismograph = stack.getOrDefault(DestroyDataComponentTypes.SEISMOGRAPH, Seismograph.empty()).mutable();
+            for (ItemStack stack : stacks) {
+                final Seismograph.Mutable seismograph = stack.getOrDefault(DestroyDataComponentTypes.SEISMOGRAPH, Seismograph.EMPTY).mutable();
                 
                 newInfo |= seismograph.setMark(modX, modZ, (zSignals & 1 << modZ) != 0 ? Seismograph.Mark.ACTIVE : Seismograph.Mark.INACTIVE);
                 newInfo |= seismograph.discoverRow(modZ, player);
@@ -117,12 +173,10 @@ public class SeismometerItem extends Item {
             };
         };
 
-        if (seismographs.isEmpty()) player.displayClientMessage(DestroyLang.translate("tooltip.seismometer.no_seismograph").style(ChatFormatting.RED).component(), true);
-            else if (newInfo) player.displayClientMessage(DestroyLang.translate("tooltip.seismometer.added_info").component(), true);
-            else player.displayClientMessage(DestroyLang.translate("tooltip.seismometer.no_new_info").style(ChatFormatting.RED).component(), true);
+        // if (seismographs.isEmpty()) player.displayClientMessage(DestroyLang.translate("tooltip.seismometer.no_seismograph").style(ChatFormatting.RED).component(), true);
+        //     else if (newInfo) player.displayClientMessage(DestroyLang.translate("tooltip.seismometer.added_info").component(), true);
+        //     else player.displayClientMessage(DestroyLang.translate("tooltip.seismometer.no_new_info").style(ChatFormatting.RED).component(), true);
         
-        
-
         // Update the animation of the Seismometer(s)
         CatnipServices.NETWORK.sendToClient(player, SeismometerSpikePacket.INSTANCE);
         // Award Advancement if some Seismograph info was filled in
@@ -134,8 +188,7 @@ public class SeismometerItem extends Item {
      */
     @SubscribeEvent
     public static final void onExplosion(ExplosionEvent.Start event) {
-        Level level = event.getLevel();
-        level.getEntitiesOfClass(Player.class, AABB.ofSize(event.getExplosion().getPosition(), 16, 16, 16), $ -> true).forEach(SeismometerItem::trigger);
+        event.getLevel().getEntitiesOfClass(ServerPlayer.class, AABB.ofSize(event.getExplosion().center(), 16, 16, 16), $ -> true).forEach(SeismometerItem::trigger);
     };
     
 };

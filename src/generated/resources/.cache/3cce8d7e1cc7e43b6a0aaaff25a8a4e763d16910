@@ -1,0 +1,7 @@
+// 1.21.1	2026-08-25T13:54:19.4789233	Registrate Provider for destroy [Registries, Data Maps, Recipes, Advancements, Loot Tables, Tags (blocks), Tags (enchantments), Tags (items), Tags (fluids), Tags (entity_types), generic_server_provider, Blockstates, Item models, Lang (en_us/en_ud), generic_client_provider, Conditional Loot Tables, Tags (block_entity_types), Tags (mob_effects), Tags (potions), Registries]
+316b5d2f208b4f3126b492e1de4ba5e7de307aea assets/destroy/lang/en_ud.json
+9c3a35a948ef41f4bec8f4982aab5f4a9c0c4798 assets/destroy/lang/en_us.json
+5fc661a60b8418b0cc8ba7a1e668eb27cb0dcc34 assets/destroy/models/item/seismograph.json
+2951ff2b4a3f14a6bbd97430f3b2426bd885840c data/destroy/advancement/recipes/tools/seismometer.json
+6c33278f354268de749eb855de34079c19fc3681 data/destroy/recipe/seismometer.json
+2bb72984d458608079075755cbec488119e48b2c data/petrolpark/tags/item/flaggable.json

@@ -1,22 +1,22 @@
 package petrolpark.mc.destroy.core.oil;
 
-import java.util.function.Consumer;
-
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.item.Item.TooltipContext;
-import net.minecraft.world.item.TooltipFlag;
+import petrolpark.mc.destroy.Destroy;
 import petrolpark.mc.destroy.core.seismology.ISeismologyProvider;
 
 @ParametersAreNonnullByDefault
 public class CrudeOilSeismologyProvider implements ISeismologyProvider {
 
+    public static final Component NAME = ISeismologyProvider.createName(Destroy.asResource("crude_oil"))
+        .withStyle(ChatFormatting.WHITE);
+
     @Override
-    public void addToTooltip(TooltipContext context, Consumer<Component> tooltipAdder, TooltipFlag tooltipFlag) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'addToTooltip'");
+    public Component getName() {
+        return NAME;
     };
 
     @Override

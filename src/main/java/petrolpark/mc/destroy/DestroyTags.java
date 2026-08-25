@@ -4,6 +4,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import petrolpark.mc.destroy.core.seismology.ISeismologyProvider;
 import petrolpark.mc.library.util.Lang;
 
 public class DestroyTags {
@@ -36,6 +37,18 @@ public class DestroyTags {
 
         private Items(String path) {
             tag = TagKey.create(Registries.ITEM, Destroy.asResource(path));
+        };
+    };
+
+    public enum SeismologyProviders {
+
+        FOR_SEISMOMETER,
+        ;
+
+        public final TagKey<ISeismologyProvider> tag;
+
+        private SeismologyProviders() {
+            tag = TagKey.create(DestroyRegistries.Keys.SEISMOLOGY_PROVIDER, Destroy.asResource(Lang.asId(name())));
         };
     };
 };

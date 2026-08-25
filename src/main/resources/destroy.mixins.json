@@ -5,7 +5,12 @@
     "refmap": "destroy.refmap.json",
     "plugin": "petrolpark.mc.destroy.mixin.plugin.DestroyMixinPlugin",
     "mixins": [
-
+        "CartographyTableMenuInputSlotMixin",
+        "CartographyTableMenuMixin",
+        "CartographyTableMenuOutputSlotMixin"
+    ],
+    "client": [
+        "client.CartographyTableScreenMixin"
     ],
     "injectors": {
         "defaultRequire": 1

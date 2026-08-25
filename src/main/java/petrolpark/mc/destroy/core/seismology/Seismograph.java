@@ -1,8 +1,11 @@
 package petrolpark.mc.destroy.core.seismology;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 
@@ -30,7 +33,7 @@ public class Seismograph {
         CodecHelper.BYTE_ARRAY.fieldOf("columns").forGetter(s -> s.columns),
         Codec.BYTE.fieldOf("rows_discovered").forGetter(Seismograph::getRowsDiscovered),
         Codec.BYTE.fieldOf("columns_discovered").forGetter(Seismograph::getColumnsDiscovered),
-        Seismograph.Mark.CODEC.listOf().fieldOf("marks").forGetter(Seismograph::getMarks)
+        Seismograph.Mark.LIST_CODEC.fieldOf("marks").forGetter(Seismograph::getMarks)
     ).apply(instance, Seismograph::new));
 
     public static final StreamCodec<FriendlyByteBuf, Seismograph> STREAM_CODEC = StreamCodec.of(Seismograph::write, Seismograph::read);
@@ -47,10 +50,8 @@ public class Seismograph {
         buf.writeCollection(seismograph.getMarks(), Seismograph.Mark::write);
     };
 
-    public static Seismograph empty() {
-        return new Seismograph(new byte[8], new byte[8], (byte)0, (byte)0, new ArrayList<>(64));
-    };
-
+    public static final Seismograph EMPTY = new Seismograph(new byte[8], new byte[8], (byte)0, (byte)0, Collections.nCopies(64, Seismograph.Mark.NONE));
+    
     protected Seismograph(byte[] rows, byte[] columns, byte rowsDiscovered, byte columnsDiscovered, List<Seismograph.Mark> marks) {
         this.rows = rows;
         this.columns = columns;
@@ -100,17 +101,43 @@ public class Seismograph {
         return columnsDiscovered;
     };
 
+    public boolean isRowDiscovered(int row) {
+        if (row < 0 || row > 7) return false;
+        return (rowsDiscovered & 1 << row) != 0;
+    };
+
+    public boolean isColumnDiscovered(int column) {
+        if (column < 0 || column > 7) return false;
+        return (columnsDiscovered & 1 << column) != 0;
+    };
+
     protected List<Seismograph.Mark> getMarks() {
         return marks;
     };
 
     public Seismograph.Mark getMark(int x, int z) {
-        if (x < 0 || x > 7 || z < 0 || z > 7) return Mark.NONE;
+        if (x < 0 || x > 7 || z < 0 || z > 7) return Seismograph.Mark.NONE;
         return getMarks().get(x * 8 + z);
     };
 
     public Seismograph.Mutable mutable() {
-        return new Mutable(getRows(), getColumns(), getRowsDiscovered(), getColumnsDiscovered(), getMarks());
+        return new Mutable(getRows(), getColumns(), getRowsDiscovered(), getColumnsDiscovered(), new ArrayList<>(getMarks()));
+    };
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        return obj instanceof Seismograph seismograph
+            && Arrays.equals(rows, seismograph.rows)
+            && Arrays.equals(columns, seismograph.columns)
+            && rowsDiscovered == seismograph.rowsDiscovered
+            && columnsDiscovered == seismograph.columnsDiscovered
+            && getMarks().equals(seismograph.getMarks());
+    };
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(rows, columns, rowsDiscovered, columnsDiscovered, marks);
     };
 
     public static class Mutable extends Seismograph {
@@ -164,7 +191,7 @@ public class Seismograph {
 
                     if (!adjActuallyPresent || !adjGuessedPresent) continue;
   
-                    adj: for (int xxx = xx - 1; xxx <= xx + 1; xx++) {
+                    adj: for (int xxx = xx - 1; xxx <= xx + 1; xxx++) {
                         if (xxx < 0 || xxx >= 8) {
                             adjActuallyPresent = adjGuessedPresent = false;
                             continue;
@@ -227,7 +254,7 @@ public class Seismograph {
 
         /**
          * Let the Seismograph know we've collected data and filled in this column
-         * @param row
+         * @param column
          * @return {@code true} if that column had not been filled in already
          */
         public boolean discoverColumn(int column, Player player) {
@@ -296,13 +323,30 @@ public class Seismograph {
 
         NONE(null),
         PRESENT(DestroyGuiTexture.SEISMOGRAPH_TICK),
-        ACTIVE(null),
+        ACTIVE(DestroyGuiTexture.SEISMOGRAPH_TICK), //TODO change
         INACTIVE(DestroyGuiTexture.SEISMOGRAPH_CROSS),
         GUESSED_PRESENT(DestroyGuiTexture.SEISMOGRAPH_GUESSED_TICK),
-        GUESSED_ACTIVE(null),
+        GUESSED_ACTIVE(DestroyGuiTexture.SEISMOGRAPH_GUESSED_TICK), //TODO change
         GUESSED_INACTIVE(DestroyGuiTexture.SEISMOGRAPH_GUESSED_CROSS);
 
-        public static final Codec<Mark> CODEC = Codec.BYTE.comapFlatMap(b -> b > (byte)0 && b < (byte)8 ? DataResult.success(values()[b]) : DataResult.error(() -> "Out of range [0-7]: " + b), Mark::ordinalByte);
+        public static final Codec<List<Seismograph.Mark>> LIST_CODEC = Codec.BYTE_BUFFER.comapFlatMap(
+            buf -> {
+                final List<Seismograph.Mark> marks = new ArrayList<>(64);
+                for (int i = 0; i < 64; i++) {
+                    final int j = i;
+                    if (!buf.hasRemaining()) return DataResult.error(() -> "Fewer Marks (" + j + ") than expected (64)");
+                    final byte b = buf.get();
+                    if (b < 0 || b > 7) return DataResult.error(() -> "Unknown ordinal " + b);
+                    marks.add(values()[b]);
+                };
+                return DataResult.success(marks);
+            },
+            list -> {
+                final ByteBuffer buf = ByteBuffer.allocate(64);
+                list.forEach(mark -> buf.put(mark.ordinalByte()));
+                return buf;
+            }
+        );
 
         @Nullable
         public final DestroyGuiTexture icon;
@@ -323,7 +367,7 @@ public class Seismograph {
             return this == PRESENT || this == ACTIVE || this == GUESSED_ACTIVE || this == GUESSED_PRESENT;
         };
 
-        public static Mark read(FriendlyByteBuf buf) {
+        public static Seismograph.Mark read(FriendlyByteBuf buf) {
             return values()[buf.readByte()];
         };
 

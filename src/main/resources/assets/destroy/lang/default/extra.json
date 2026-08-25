@@ -3,11 +3,16 @@
     "commands.destroy.pollution.query": "Pollution of type %s has a level of %s",
     "commands.destroy.pollution.set": "Set level of Pollution of type %s to %s. A reload may be required for some changes to take effect.",
 
+    "destroy.tooltip.seismology_provider": "Seismic source: %s",
+
     "pollution_type.destroy.greenhouse": "Greenhouse Gas",
     "pollution_type.destroy.ozone_depletion": "Ozone Depletion",
     "pollution_type.destroy.acid_rain": "Rain Acidity",
     "pollution_type.destroy.radioactivity": "Radioactivity",
     "pollution_type.destroy.smog": "Smog",
 
-    "pquality_effect.destroy.seismometer": "Seismometers produce %2$sx the false positives"
+    "pquality_effect.destroy.seismometer": "Seismometers produce %2$sx the false positives",
+
+    "seismologyProvider.destroy.crude_oil": "Crude Oil",
+    "seismologyProvider.destroy.none": "Nothing!"
 }

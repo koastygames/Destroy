@@ -10,18 +10,6 @@ public class SeismometerSpikePacket implements ClientboundPacketPayload {
 
     private SeismometerSpikePacket() {};
 
-    // @Override
-    // public void toBytes(FriendlyByteBuf buffer) {};
-
-    // @Override
-    // public boolean handle(Supplier<Context> supplier) {
-    //     NetworkEvent.Context context = supplier.get();
-    //     context.enqueueWork(() -> {
-    //         SeismometerItemRenderer.spike();
-    //     });
-    //     return true;
-    // };
-
     @Override
     public void handle(LocalPlayer player) {
         SeismometerItemRenderer.spike();

@@ -1,0 +1,16 @@
+{
+  "commands.destroy.crudeoil": "]%s '%s '%s[ ʇɐ ʞunɥɔ ǝɥʇ uı ןıO ǝpnɹƆ ɟo ᗺɯ %s sı ǝɹǝɥ⟘",
+  "commands.destroy.pollution.query": "%s ɟo ןǝʌǝן ɐ sɐɥ %s ǝdʎʇ ɟo uoıʇnןןoԀ",
+  "commands.destroy.pollution.set": "˙ʇɔǝɟɟǝ ǝʞɐʇ oʇ sǝbuɐɥɔ ǝɯos ɹoɟ pǝɹınbǝɹ ǝq ʎɐɯ pɐoןǝɹ Ɐ ˙%s oʇ %s ǝdʎʇ ɟo uoıʇnןןoԀ ɟo ןǝʌǝן ʇǝS",
+  "destroy.tooltip.seismology_provider": "%s :ǝɔɹnos ɔıɯsıǝS",
+  "item.destroy.seismograph": "ɥdɐɹboɯsıǝS",
+  "item.destroy.seismometer": "ɹǝʇǝɯoɯsıǝS pןǝɥpuɐH",
+  "pollution_type.destroy.acid_rain": "ʎʇıpıɔⱯ uıɐᴚ",
+  "pollution_type.destroy.greenhouse": "sɐ⅁ ǝsnoɥuǝǝɹ⅁",
+  "pollution_type.destroy.ozone_depletion": "uoıʇǝןdǝᗡ ǝuozO",
+  "pollution_type.destroy.radioactivity": "ʎʇıʌıʇɔɐoıpɐᴚ",
+  "pollution_type.destroy.smog": "boɯS",
+  "pquality_effect.destroy.seismometer": "sǝʌıʇısod ǝsןɐɟ ǝɥʇ x%2$s ǝɔnpoɹd sɹǝʇǝɯoɯsıǝS",
+  "seismologyProvider.destroy.crude_oil": ")ʎoɹʇsǝᗡ( ןıO ǝpnɹƆ",
+  "seismologyProvider.destroy.none": "¡buıɥʇoN"
+}

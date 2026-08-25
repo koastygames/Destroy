@@ -1,8 +1,10 @@
-package petrolpark.mc.library.destroy.content.oil.seismology;
+package petrolpark.mc.destroy.core.seismology;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+
+import javax.annotation.Nonnull;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -15,16 +17,13 @@ import net.createmod.ponder.foundation.PonderScene;
 import net.createmod.ponder.foundation.element.AnimatedOverlayElementBase;
 import net.createmod.ponder.foundation.instruction.FadeInOutInstruction;
 import net.createmod.ponder.foundation.ui.PonderUI;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import petrolpark.mc.destroy.client.DestroyGuiTexture;
-import petrolpark.mc.destroy.core.seismology.SeismographItem.Seismograph;
 
 public class ShowSeismographPonderInstruction extends FadeInOutInstruction {
 
-    private final Minecraft mc;
     private final Set<Outline> outlines;
 
     private final Vec3 sceneSpace;
@@ -34,9 +33,8 @@ public class ShowSeismographPonderInstruction extends FadeInOutInstruction {
     private final SeismographElement element;
 
 	private ShowSeismographPonderInstruction(Pointing direction, Vec3 sceneSpace, Seismograph seismograph) {
-		super(100000);
+		super(Integer.MAX_VALUE);
 
-        mc = Minecraft.getInstance();
         outlines = new HashSet<>();
 
         this.sceneSpace = sceneSpace;
@@ -132,11 +130,8 @@ public class ShowSeismographPonderInstruction extends FadeInOutInstruction {
             scene.addInstruction(s -> outlines.add(new Outline(12 + 6 * x, 12 + 6 * z, DestroyGuiTexture.SEISMOGRAPH_HIGHLIGHT_CELL, color, ticks)));
         };
 
-        /**
-         * Largely copied from {@link com.simibubi.create.foundation.ponder.element.InputWindowElement Create 0.5.1 source code}.
-         */
         @Override
-        public void render(PonderScene scene, PonderUI screen, GuiGraphics graphics, float partialTicks, float fade) {
+        public void render(@Nonnull PonderScene scene, @Nonnull PonderUI screen, @Nonnull GuiGraphics graphics, float partialTicks, float fade) {
 
             float xFade = direction == Pointing.RIGHT ? -1 : direction == Pointing.LEFT ? 1 : 0;
             float yFade = direction == Pointing.DOWN ? -1 : direction == Pointing.UP ? 1 : 0;
@@ -153,10 +148,10 @@ public class ShowSeismographPonderInstruction extends FadeInOutInstruction {
             PonderUI.renderSpeechBox(graphics, 0, 0, 96, 96, false, direction, true);
             ms.pushPose();
             ms.scale(1.5f, 1.5f, 1.5f);
-            SeismographItemRenderer.renderSeismograph(ms, graphics.bufferSource(), 0, null, null, seismograph, mc, (t, x, y) -> t.render(graphics, (int)x, (int)y), false);
+            SeismographRenderer.renderSeismograph(ms, graphics.bufferSource(), 0, null, null, seismograph, (t, x, y) -> t.render(graphics, (int)x, (int)y), false);
             ms.translate(0f, 0f, 100f);
             for (Outline outline : outlines) {
-                outline.texture.render(graphics, outline.x, outline.y, outline.color.getColorObject().setAlpha(1f).scaleAlpha(outline.fade.getValue(partialTicks)));
+                //outline.texture.render(graphics, outline.x, outline.y, outline.color.getColorObject().setAlpha(1f).scaleAlpha(outline.fade.getValue(partialTicks)));
             };
             ms.popPose();
             ms.popPose();

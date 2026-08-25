@@ -6,27 +6,43 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 import com.mojang.serialization.Codec;
 
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
+import net.minecraft.core.Holder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipProvider;
+import petrolpark.mc.destroy.Destroy;
 import petrolpark.mc.destroy.DestroyRegistries;
+import petrolpark.mc.destroy.DestroySeismologyProviders;
+import petrolpark.mc.destroy.util.DestroyLang;
 
 @ParametersAreNonnullByDefault
 public interface ISeismologyProvider extends TooltipProvider {
 
     static final long HASH_SALT = 5252525252l;
 
-    public static final Codec<ISeismologyProvider> CODEC = DestroyRegistries.SEISMOLOGY_PROVIDERS.byNameCodec();
-    public static final StreamCodec<RegistryFriendlyByteBuf, ISeismologyProvider> STREAM_CODEC = ByteBufCodecs.registry(DestroyRegistries.Keys.SEISMOLOGY_PROVIDER);
+    public static final Codec<Holder<ISeismologyProvider>> CODEC = DestroyRegistries.SEISMOLOGY_PROVIDERS.holderByNameCodec();
+    public static final StreamCodec<RegistryFriendlyByteBuf, Holder<ISeismologyProvider>> STREAM_CODEC = ByteBufCodecs.holderRegistry(DestroyRegistries.Keys.SEISMOLOGY_PROVIDER);
   
     public static ISeismologyProvider none() {
         return ISeismologyProvider.None.INSTANCE;
+    };
+
+    public static Holder<ISeismologyProvider> noneHolder() {
+        return DestroySeismologyProviders.NONE.getDelegate();
+    };
+
+    static MutableComponent createName(ResourceLocation id) {
+        return Component.translatable(Util.makeDescriptionId("seismologyProvider", id)).withStyle(ChatFormatting.WHITE);
     };
 
     public Component getName();
@@ -38,7 +54,7 @@ public interface ISeismologyProvider extends TooltipProvider {
      * completely randomly, some chunks to show as seismically active
      * @param level
      * @param chunkX
-     * @param chunkY
+     * @param chunkZ
      */
     public default boolean isFalsePositive(ServerLevel level, float errorRate, int chunkX, int chunkZ) {
         final RandomSource random = RandomSource.create(level.getSeed() ^ HASH_SALT ^ chunkX ^ chunkZ);
@@ -116,15 +132,22 @@ public interface ISeismologyProvider extends TooltipProvider {
         return signals;
     };
 
+    @Override
+    default void addToTooltip(TooltipContext context, Consumer<Component> tooltipAdder, TooltipFlag tooltipFlag) {
+        tooltipAdder.accept(DestroyLang.tooltip("seismology_provider", getName()).copy().withStyle(ChatFormatting.GRAY));
+    };
+
     static final class None implements ISeismologyProvider {
 
+        private static final Component NAME = ISeismologyProvider.createName(Destroy.asResource("none"))
+            .withStyle(ChatFormatting.RED);
         private static final ISeismologyProvider.None INSTANCE = new ISeismologyProvider.None();
 
         private None() {};
 
         @Override
         public Component getName() {
-            return Component.empty();
+            return NAME;
         };
 
         @Override
@@ -135,11 +158,6 @@ public interface ISeismologyProvider extends TooltipProvider {
         @Override
         public boolean isFalsePositive(ServerLevel level, float errorRate, int chunkX, int chunkZ) {
             return false;
-        };
-
-        @Override
-        public void addToTooltip(TooltipContext context, Consumer<Component> tooltipAdder, TooltipFlag tooltipFlag) {
-            return;
         };
 
     };

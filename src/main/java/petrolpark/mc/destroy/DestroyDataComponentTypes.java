@@ -4,6 +4,7 @@ import java.util.function.UnaryOperator;
 
 import org.jetbrains.annotations.ApiStatus;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.neoforged.bus.api.IEventBus;
@@ -15,7 +16,7 @@ public class DestroyDataComponentTypes {
     
     private static final DeferredRegister.DataComponents DATA_COMPONENTS = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, Destroy.MOD_ID);
 
-    public static final DataComponentType<ISeismologyProvider> SEISMOLOGY_PROVIDER = register("seismology_provider", b -> b
+    public static final DataComponentType<Holder<ISeismologyProvider>> SEISMOLOGY_PROVIDER = register("seismology_provider", b -> b
         .persistent(ISeismologyProvider.CODEC)
         .networkSynchronized(ISeismologyProvider.STREAM_CODEC)
     );

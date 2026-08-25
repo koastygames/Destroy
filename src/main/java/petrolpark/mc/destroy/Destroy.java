@@ -41,10 +41,13 @@ public class Destroy {
         // Registration
         DestroyAttachmentTypes.register(modEventBus);
         DestroyCriteriaTriggers.register();
+        DestroyDataComponentTypes.register(modEventBus);
+        DestroyItems.register();
         DestroyNumberProviderTypes.register();
         DestroyPackets.register();
         DestroyPollutionTypes.register();
         DestroyRegistries.init();
+        DestroySeismologyProviders.register();
     
         // Events
         modEventBus.addListener(this::init);
@@ -56,7 +59,7 @@ public class Destroy {
     };
 
     @GetPetrolparkSharedFeatures
-    public SharedFeatureFlag[] getEnabledSharedFeatureFlags() {
+    public static SharedFeatureFlag[] getEnabledSharedFeatureFlags() {
         return new SharedFeatureFlag[]{
             SharedFeatureFlag.BASIN_LID,
             SharedFeatureFlag.BLOOD,

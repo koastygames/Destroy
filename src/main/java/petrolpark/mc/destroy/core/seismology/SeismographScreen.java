@@ -1,4 +1,4 @@
-package petrolpark.mc.library.destroy.content.oil.seismology;
+package petrolpark.mc.destroy.core.seismology;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -27,12 +27,13 @@ public class SeismographScreen extends AbstractSimiScreen {
 
     public static final int SCALE = 3;
 
+    @SuppressWarnings("null")
     public SeismographScreen(ItemStack stack, InteractionHand hand) {
         mc = Minecraft.getInstance();
 
         mapId = stack.get(DataComponents.MAP_ID);
         mapData = SeismographItem.getSavedData(mapId, mc.level);
-        seismograph = stack.getOrDefault(DestroyDataComponentTypes.SEISMOGRAPH, Seismograph.empty()).mutable();
+        seismograph = stack.getOrDefault(DestroyDataComponentTypes.SEISMOGRAPH, Seismograph.EMPTY).mutable();
 
         this.hand = hand;
     };
@@ -81,7 +82,7 @@ public class SeismographScreen extends AbstractSimiScreen {
         ms.pushPose();
         ms.translate(guiLeft, guiTop, 0f);
         ms.scale(3f, 3f, 3f);
-        SeismographItemRenderer.renderSeismograph(ms, graphics.bufferSource(), 0xFFFFFF, mapId, mapData, seismograph, mc, (t, x, y) -> t.render(ms, x, y), false);
+        SeismographRenderer.renderSeismograph(ms, graphics.bufferSource(), 15728880, mapId, mapData, seismograph, (t, x, y) -> t.render(graphics, (int)x, (int)y), false);
         ms.popPose();
     };
     

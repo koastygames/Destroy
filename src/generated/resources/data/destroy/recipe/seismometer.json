@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": {
+      "item": "create:brass_casing"
+    },
+    "F": {
+      "tag": "c:feathers"
+    },
+    "I": {
+      "tag": "c:storage_blocks/iron"
+    },
+    "P": {
+      "item": "minecraft:paper"
+    }
+  },
+  "pattern": [
+    "IFP",
+    " C "
+  ],
+  "result": {
+    "count": 1,
+    "id": "destroy:seismometer"
+  }
+}

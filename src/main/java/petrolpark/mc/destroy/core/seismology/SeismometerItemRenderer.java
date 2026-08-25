@@ -17,41 +17,42 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import petrolpark.mc.destroy.Destroy;
 import petrolpark.mc.destroy.DestroyItems;
 
+@EventBusSubscriber(Dist.CLIENT)
 public class SeismometerItemRenderer extends CustomRenderedItemModelRenderer {
 
-    protected static final PartialModel UNANIMATED = PartialModel.of(Destroy.asResource("item/seismometer/item"));
+    protected static final PartialModel UNANIMATED = PartialModel.of(Destroy.asResource("item/seismometer"));
     protected static final PartialModel BASE = PartialModel.of(Destroy.asResource("item/seismometer/base"));
     protected static final PartialModel NEEDLE = PartialModel.of(Destroy.asResource("item/seismometer/needle"));
     protected static final PartialModel PAGE_BLANK = PartialModel.of(Destroy.asResource("item/seismometer/page_blank"));
     protected static final PartialModel PAGE_LEVEL = PartialModel.of(Destroy.asResource("item/seismometer/page_level"));
     protected static final PartialModel PAGE_SPIKE = PartialModel.of(Destroy.asResource("item/seismometer/page_spike"));
 
-    private Boolean spike;
-    private static int spikeNextPage; // Whether the next page to be shown should have a spike on it
-    private static LerpedFloat angle;
+    private Boolean SPIKE;
+    private static int SPIKE_NEXT_PAGE; // Whether the next page to be shown should have a spike on it
+    private static final LerpedFloat ANGLE = LerpedFloat.angular().startWithValue(0d).chase(0f, 0.2f, LerpedFloat.Chaser.EXP);
 
-    static {
-        angle = LerpedFloat.angular().startWithValue(0d);
-        angle.chase(0f, 0.2f, LerpedFloat.Chaser.EXP);
-    };
-
-    public static void tick() {
-        angle.tickChaser();
-        if (spikeNextPage > 0) spikeNextPage--;
+    @SubscribeEvent
+    public static final void tick(ClientTickEvent.Pre event) {
+        ANGLE.tickChaser();
+        if (SPIKE_NEXT_PAGE > 0) SPIKE_NEXT_PAGE--;
     };
 
     public static void spike() {
-        spikeNextPage = 32;
+        SPIKE_NEXT_PAGE = 32;
     };
 
     @Override
     protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer, ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
-        float partialTicks = AnimationTickHolder.getPartialTicks();
-        int ticksThroughAnimation = AnimationTickHolder.getTicks(true) % 32;
-        PoseTransformStack msr = TransformStack.of(ms);
+        final float partialTicks = AnimationTickHolder.getPartialTicks();
+        final int ticksThroughAnimation = AnimationTickHolder.getTicks(true) % 32;
+        final PoseTransformStack msr = TransformStack.of(ms);
 
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
@@ -82,18 +83,18 @@ public class SeismometerItemRenderer extends CustomRenderedItemModelRenderer {
         };
 
         // Determine whether the next animation cycle should be level or have a spike
-        if (spike == null || ticksThroughAnimation == 0) {
-            spike = spikeNextPage > 0;
+        if (SPIKE == null || ticksThroughAnimation == 0) {
+            SPIKE = SPIKE_NEXT_PAGE > 0;
         };
 
-        BakedModel pageModel = spike ? PAGE_SPIKE.get() : PAGE_LEVEL.get();
+        BakedModel pageModel = SPIKE ? PAGE_SPIKE.get() : PAGE_LEVEL.get();
 
         ms.pushPose();
         renderer.render(pageModel, light);
         ms.popPose();
 
         float angleToChase = 0f;
-        if (spike) {
+        if (SPIKE) {
             if (ticksThroughAnimation < 8) {
                 angleToChase = -30;
             } else if (ticksThroughAnimation < 16) {
@@ -106,12 +107,12 @@ public class SeismometerItemRenderer extends CustomRenderedItemModelRenderer {
         } else {
             angleToChase = ticksThroughAnimation % 16 < 8 ? 10 : -10;
         };
-        angle.updateChaseTarget(angleToChase);
+        ANGLE.updateChaseTarget(angleToChase);
 
         ms.pushPose();
         ms.translate(0f, 0f, -5/16f);
         ms.pushPose();
-        msr.rotateYDegrees(angle.getValue(partialTicks));
+        msr.rotateYDegrees(ANGLE.getValue(partialTicks));
         renderer.render(NEEDLE.get(), light);
         ms.popPose();
         ms.popPose();

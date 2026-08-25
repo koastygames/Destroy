@@ -1,14 +1,13 @@
 package petrolpark.mc.destroy.core.seismology;
 
-import java.util.function.Consumer;
+import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-
-import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 
 import net.createmod.catnip.gui.ScreenOpener;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -16,23 +15,25 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderItemInFrameEvent;
-import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import petrolpark.mc.destroy.DestroyDataComponentTypes;
 import petrolpark.mc.library.Petrolpark;
 
 @EventBusSubscriber
 @ParametersAreNonnullByDefault
 public class SeismographItem extends MapItem {
 
-    public SeismographItem(Properties properties) {
+    public SeismographItem(Item.Properties properties) {
         super(properties);
     };
 
@@ -49,9 +50,9 @@ public class SeismographItem extends MapItem {
 	};
 
     @Override
-    @OnlyIn(Dist.CLIENT)
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(SimpleCustomRenderer.create(this, new SeismographItemRenderer()));
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        stack.getOrDefault(DestroyDataComponentTypes.SEISMOLOGY_PROVIDER, ISeismologyProvider.noneHolder()).value().addToTooltip(context, tooltipComponents::add, tooltipFlag);
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     };
 
     public static int mapChunkCenter(int chunkCoordinate) {

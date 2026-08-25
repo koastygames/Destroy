@@ -23,7 +23,7 @@ import petrolpark.mc.library.util.ColorHelper;
 @EventBusSubscriber(Dist.CLIENT)
 public class ClientPollutionEvents {
 
-    private static SmogCache SMOG_CACHE = null;
+    private static final ThreadLocal<SmogCache> SMOG_CACHE = ThreadLocal.withInitial(() -> null);
 
     public static final int BROWN = 0xFF3F3832;
     public static final Color BROWN_COLOR = new Color(BROWN);
@@ -37,16 +37,16 @@ public class ClientPollutionEvents {
             && event.getColorResolver() != BiomeColors.WATER_COLOR_RESOLVER
         )) return;
         final long chunkPos = new ChunkPos(event.getPos()).toLong();
-        if (SMOG_CACHE == null || SMOG_CACHE.chunkPos() != chunkPos) {
-            SMOG_CACHE = new SmogCache(chunkPos, PollutionHelper.getPollutionProportion(event.getLevel(), event.getPos(), DestroyPollutionTypes.SMOG.get()));
+        if (SMOG_CACHE.get() == null || SMOG_CACHE.get().chunkPos() != chunkPos) {
+            SMOG_CACHE.set(new SmogCache(chunkPos, PollutionHelper.getPollutionProportion(event.getLevel(), event.getPos(), DestroyPollutionTypes.SMOG.get())));
         };
-        if (SMOG_CACHE != null) event.setColor(Color.mixColors(event.getColor(), BROWN, SMOG_CACHE.smogPollutionProportion()));
+        if (SMOG_CACHE.get() != null) event.setColor(Color.mixColors(event.getColor(), BROWN, SMOG_CACHE.get().smogPollutionProportion()));
     };
 
     static record SmogCache(long chunkPos, float smogPollutionProportion) {};
 
     public static final void refreshSmog(ChunkPos pos) {
-        SMOG_CACHE = null;
+        SMOG_CACHE.set(null);
         ColorHelper.refreshChunkColors(pos);
     };
 
@@ -85,6 +85,7 @@ public class ClientPollutionEvents {
     /**
      * {@link Camera#getFluidInCamera()} doesn't account for modded fluids so we need a more general check.
      */
+    @SuppressWarnings("null")
     private static final FogType getFluidFog(Camera camera) {
         final Minecraft mc = Minecraft.getInstance();
         final FluidState state = mc.level.getFluidState(camera.getBlockPosition());

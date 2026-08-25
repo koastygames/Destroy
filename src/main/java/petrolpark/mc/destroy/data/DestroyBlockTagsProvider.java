@@ -2,10 +2,11 @@ package petrolpark.mc.destroy.data;
 
 import java.util.concurrent.CompletableFuture;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Blocks;
@@ -14,9 +15,10 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import petrolpark.mc.destroy.Destroy;
 import petrolpark.mc.destroy.DestroyTags;
 
+@ParametersAreNonnullByDefault
 public class DestroyBlockTagsProvider extends BlockTagsProvider {
 
-    public DestroyBlockTagsProvider(PackOutput output, CompletableFuture<Provider> lookupProvider, @Nullable ExistingFileHelper existingFileHelper) {
+    public DestroyBlockTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, @Nullable ExistingFileHelper existingFileHelper) {
         super(output, lookupProvider, Destroy.MOD_ID, existingFileHelper);
     };
 

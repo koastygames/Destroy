@@ -3,6 +3,8 @@ package petrolpark.mc.destroy.core.pollution;
 import java.util.Collections;
 import java.util.Set;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -21,6 +23,7 @@ import petrolpark.mc.destroy.DestroyRegistries;
 import petrolpark.mc.library.core.data.numberProvider.IEstimableNumberProvider;
 import petrolpark.mc.library.core.data.numberProvider.NumberEstimate;
 
+@ParametersAreNonnullByDefault
 public record PollutionNumberProvider(Either<Holder<PollutionType<Level>>, Holder<PollutionType<ChunkAccess>>> pollutionType, boolean proportion) implements IEstimableNumberProvider {
 
     public static final MapCodec<PollutionNumberProvider> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
