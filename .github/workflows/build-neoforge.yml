@@ -3,7 +3,8 @@ name: Build Destroy NeoForge 1.21.1
 on:
   push:
     branches:
-      - chatgpt/update-neoforge-create-2026-08-27
+      - 1.21.1-neo
+      - chatgpt/create-6.0.10
   workflow_dispatch:
 
 permissions:
@@ -95,7 +96,7 @@ jobs:
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
-          name: destroy-neoforge-1.21.1
+          name: destroy-neoforge-1.21.1-create-6.0.10
           path: artifact/*.jar
           if-no-files-found: error
           retention-days: 30
