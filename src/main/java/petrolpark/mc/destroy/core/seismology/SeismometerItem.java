@@ -9,9 +9,6 @@ import java.util.function.Consumer;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour.ValueSettings;
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard;
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsFormatter;
 import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 
 import it.unimi.dsi.fastutil.objects.Object2FloatMap;
@@ -45,13 +42,11 @@ import petrolpark.mc.destroy.DestroyItems;
 import petrolpark.mc.destroy.DestroyRegistries;
 import petrolpark.mc.destroy.DestroyTags;
 import petrolpark.mc.destroy.config.DestroyConfigs;
-import petrolpark.mc.destroy.util.DestroyLang;
-import petrolpark.mc.library.compat.create.core.world.item.valueSettings.IValueSettingsItem;
 import petrolpark.mc.library.compat.pquality.OptionalQuality;
 
 @EventBusSubscriber
 @ParametersAreNonnullByDefault
-public class SeismometerItem extends Item implements IValueSettingsItem {
+public class SeismometerItem extends Item {
 
     public static List<Holder<ISeismologyProvider>> getProviders() {
         final List<Holder<ISeismologyProvider>> providers = DestroyRegistries.SEISMOLOGY_PROVIDERS.getTag(DestroyTags.SeismologyProviders.FOR_SEISMOMETER.tag).stream()
@@ -70,33 +65,22 @@ public class SeismometerItem extends Item implements IValueSettingsItem {
 		consumer.accept(SimpleCustomRenderer.create(this, new SeismometerItemRenderer()));
 	};
 
+    /**
+     * Petrolpark's old item value-settings compatibility layer was removed in
+     * newer library releases. Keep the seismometer selector fully usable by
+     * cycling through the registered providers on right-click.
+     */
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
-        return useValueSettingsItem(level, player, usedHand);
-    };
-
-    @Override
-    public ValueSettingsBoard createValueSettingsBoard(Player player, InteractionHand hand, ItemStack stack) {
-        final List<Holder<ISeismologyProvider>> providers = getProviders();
-        return new ValueSettingsBoard(
-            DestroyLang.tooltip("seismology_provider", ""),
-            0,
-            providers.size(),
-            providers.stream().map(Holder::value).map(ISeismologyProvider::getName).toList(),
-            new ValueSettingsFormatter(settings -> settings.row() >= 0 && settings.row() < providers.size() ? providers.get(settings.row()).value().getName().copy() : Component.empty())
-        );
-    };
-
-    @Override
-    public ValueSettings getValueSettings(ItemStack stack) {
-        return new ValueSettings(getProviders().indexOf(stack.getOrDefault(DestroyDataComponentTypes.SEISMOLOGY_PROVIDER, ISeismologyProvider.noneHolder())), 0);
-    };
-
-    @Override
-    public void setValueSettings(ItemStack stack, ValueSettings valueSettings, boolean ctrlDown) {
-        final int index = valueSettings.row();
-        final List<Holder<ISeismologyProvider>> providers = getProviders();
-        if (index >= 0 && index < providers.size()) stack.set(DestroyDataComponentTypes.SEISMOLOGY_PROVIDER, providers.get(index));
+        final ItemStack stack = player.getItemInHand(usedHand);
+        if (!level.isClientSide) {
+            final List<Holder<ISeismologyProvider>> providers = getProviders();
+            final Holder<ISeismologyProvider> current = stack.getOrDefault(DestroyDataComponentTypes.SEISMOLOGY_PROVIDER, ISeismologyProvider.noneHolder());
+            final int currentIndex = providers.indexOf(current);
+            final int nextIndex = Math.floorMod(currentIndex + 1, providers.size());
+            stack.set(DestroyDataComponentTypes.SEISMOLOGY_PROVIDER, providers.get(nextIndex));
+        };
+        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     };
 
     @Override
@@ -173,10 +157,6 @@ public class SeismometerItem extends Item implements IValueSettingsItem {
             };
         };
 
-        // if (seismographs.isEmpty()) player.displayClientMessage(DestroyLang.translate("tooltip.seismometer.no_seismograph").style(ChatFormatting.RED).component(), true);
-        //     else if (newInfo) player.displayClientMessage(DestroyLang.translate("tooltip.seismometer.added_info").component(), true);
-        //     else player.displayClientMessage(DestroyLang.translate("tooltip.seismometer.no_new_info").style(ChatFormatting.RED).component(), true);
-        
         // Update the animation of the Seismometer(s)
         CatnipServices.NETWORK.sendToClient(player, SeismometerSpikePacket.INSTANCE);
         // Award Advancement if some Seismograph info was filled in
