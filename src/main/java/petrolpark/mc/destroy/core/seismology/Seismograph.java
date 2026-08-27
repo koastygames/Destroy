@@ -20,7 +20,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import petrolpark.mc.destroy.DestroyCriteriaTriggers;
 import petrolpark.mc.destroy.client.DestroyGuiTexture;
-import petrolpark.mc.library.util.codec.CodecHelper;
 
 public class Seismograph {
 
@@ -28,9 +27,19 @@ public class Seismograph {
     protected byte rowsDiscovered, columnsDiscovered;
     protected final List<Seismograph.Mark> marks;
 
+    private static final Codec<byte[]> BYTE_ARRAY_CODEC = Codec.BYTE_BUFFER.xmap(
+        buffer -> {
+            final ByteBuffer copy = buffer.duplicate();
+            final byte[] bytes = new byte[copy.remaining()];
+            copy.get(bytes);
+            return bytes;
+        },
+        bytes -> ByteBuffer.wrap(bytes)
+    );
+
     public static final Codec<Seismograph> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-        CodecHelper.BYTE_ARRAY.fieldOf("rows").forGetter(s -> s.rows),
-        CodecHelper.BYTE_ARRAY.fieldOf("columns").forGetter(s -> s.columns),
+        BYTE_ARRAY_CODEC.fieldOf("rows").forGetter(s -> s.rows),
+        BYTE_ARRAY_CODEC.fieldOf("columns").forGetter(s -> s.columns),
         Codec.BYTE.fieldOf("rows_discovered").forGetter(Seismograph::getRowsDiscovered),
         Codec.BYTE.fieldOf("columns_discovered").forGetter(Seismograph::getColumnsDiscovered),
         Seismograph.Mark.LIST_CODEC.fieldOf("marks").forGetter(Seismograph::getMarks)
@@ -195,21 +204,21 @@ public class Seismograph {
                         if (xxx < 0 || xxx >= 8) {
                             adjActuallyPresent = adjGuessedPresent = false;
                             continue;
-                        };
+                        }
                         for (int zzz = zz - 1; zzz <= zz + 1; zzz++) {
                             if ((xxx == 0) == (zzz == 0)) continue;
                             if (zzz < 0 || zzz >= 8) {
                                 adjActuallyPresent = adjGuessedPresent = false;
                                 continue;
-                            };
+                            }
 
                             final Seismograph.Mark adjAdjMark = getMark(xxx, zzz);
                             if (!adjAdjMark.actuallyActive()) {
                                 adjActuallyPresent = false;
-                            };
+                            }
                             if (!adjAdjMark.guessedActive()) {
                                 adjGuessedPresent = false;
-                            };
+                            }
 
                             if (!adjActuallyPresent && !adjGuessedPresent) break adj;
                         };
@@ -302,17 +311,17 @@ public class Seismograph {
                             } else {
                                 setMark(x, z, shouldBeActive ? Seismograph.Mark.ACTIVE : Seismograph.Mark.INACTIVE);
                             };
-                        };
-                    };
-                };
+                        }
+                    }
+                }
                 if (player != null) DestroyCriteriaTriggers.COMPLETE_SEISMOGRAPH.get().trigger(player);
             };
-        };
+        }
 
         @Override
         public Seismograph.Mutable mutable() {
             return this;
-        };
+        }
 
         public Seismograph immutable() {
             return new Seismograph(rows, columns, rowsDiscovered, columnsDiscovered, marks);
@@ -338,7 +347,7 @@ public class Seismograph {
                     final byte b = buf.get();
                     if (b < 0 || b > 7) return DataResult.error(() -> "Unknown ordinal " + b);
                     marks.add(values()[b]);
-                };
+                }
                 return DataResult.success(marks);
             },
             list -> {
@@ -361,11 +370,11 @@ public class Seismograph {
 
         public boolean guessedActive() {
             return actuallyActive() || this == GUESSED_PRESENT || this == GUESSED_ACTIVE;
-        };
+        }
 
         public boolean looksActive() {
             return this == PRESENT || this == ACTIVE || this == GUESSED_ACTIVE || this == GUESSED_PRESENT;
-        };
+        }
 
         public static Seismograph.Mark read(FriendlyByteBuf buf) {
             return values()[buf.readByte()];
