@@ -27,9 +27,16 @@ file="META-INF/accesstransformer.cfg"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
+    modId="neoforge"
+    type="required"
+    versionRange="${neo_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
 	modId="create"
 	type="required"
-	versionRange="[6.0.10,6.0.11)"
+	versionRange="[6.0.11,6.0.12)"
 	ordering="AFTER"
 	side="BOTH"
 
