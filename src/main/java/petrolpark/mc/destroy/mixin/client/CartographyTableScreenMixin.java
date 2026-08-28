@@ -51,8 +51,24 @@ public abstract class CartographyTableScreenMixin extends AbstractContainerScree
         ),
         locals = LocalCapture.CAPTURE_FAILEXCEPTION
     )
-    public void destroy$seismographError(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY, CallbackInfo ci, int i, int j, ItemStack modifier, boolean hasMap, boolean hasPaper, boolean hasGlassPane, ItemStack map, MapId mapId, boolean isMaxSize, MapItemSavedData mapData) {
-        if (DestroyItems.SEISMOMETER.isIn(modifier) && (mapData.scale != 0 || mapData.locked)) {
+    public void destroy$seismographError(
+        GuiGraphics guiGraphics,
+        float partialTick,
+        int mouseX,
+        int mouseY,
+        CallbackInfo ci,
+        int i,
+        int j,
+        ItemStack modifier,
+        boolean hasMap,
+        boolean hasPaper,
+        boolean hasGlassPane,
+        ItemStack map,
+        MapId mapId,
+        MapItemSavedData mapData,
+        boolean isMaxSize
+    ) {
+        if (DestroyItems.SEISMOMETER.isIn(modifier) && mapData != null && (mapData.scale != 0 || mapData.locked)) {
             guiGraphics.blitSprite(ERROR_SPRITE, i + 35, j + 31, 28, 21);
         };
     };
@@ -87,7 +103,7 @@ public abstract class CartographyTableScreenMixin extends AbstractContainerScree
                     guiGraphics.flush();
                 }; guiGraphics.pose().popPose();
 
-            }; guiGraphics.pose().pushPose();
+            }; guiGraphics.pose().popPose();
 
             ci.cancel();
         };

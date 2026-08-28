@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - 1.21.1-neo
-      - chatgpt/create-6.0.10
+      - 'chatgpt/**'
   workflow_dispatch:
 
 permissions:
