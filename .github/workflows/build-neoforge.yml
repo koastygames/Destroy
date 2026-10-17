@@ -89,7 +89,7 @@ jobs:
           find build/libs -maxdepth 1 -type f -name '*.jar' \
             ! -name '*-sources.jar' \
             ! -name '*-javadoc.jar' \
-            -exec cp {} artifact/ \\;
+            -exec cp {} artifact/ \;
           test -n "$(find artifact -maxdepth 1 -type f -name '*.jar' -print -quit)"
           ls -lh artifact/
 
