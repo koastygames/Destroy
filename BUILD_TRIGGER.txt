@@ -1,0 +1,1 @@
+Build trigger for the NeoForge 1.21.1 JAR workflow. This branch is based on the latest known successful build commit d73929c1f720e00a36aeed1659641429f42c790c.
